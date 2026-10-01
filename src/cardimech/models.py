@@ -46,7 +46,7 @@ class BoundaryCondition(BaseModel):
 
     @model_validator(mode="after")
     def require_value_or_waveform(self) -> "BoundaryCondition":
-        if self.value is None and self.waveform_ref is None and self.kind not in {"fixed", "custom"}:
+        if (\n            self.value is None\n            and self.waveform_ref is None\n            and self.kind not in {"fixed", "custom"}\n        ):
             raise ValueError("Boundary condition requires a scalar value or waveform reference")
         return self
 
