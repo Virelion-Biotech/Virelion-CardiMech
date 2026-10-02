@@ -1,4 +1,3 @@
-import json
 import sys
 
 from cardimech import ArtifactRef, MechanicalParameterSet, MechanicsSimulationRequest
