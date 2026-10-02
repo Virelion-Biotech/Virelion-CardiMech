@@ -14,3 +14,4 @@ htmlcov/
 outputs/
 artifacts/
 checkpoints/
+runs/
