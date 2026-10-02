@@ -1,0 +1,24 @@
+{
+  "subject_id": "SYNTH-001",
+  "anatomy_ref": {
+    "artifact_id": "synthetic-lv",
+    "kind": "reference_geometry",
+    "uri": "memory://synthetic-lv"
+  },
+  "observations": [
+    {
+      "observation_id": "cmr-edv",
+      "kind": "end_diastolic_volume",
+      "artifact": {"artifact_id": "edv", "kind": "scalar", "uri": "file:///data/edv.json"},
+      "unit": "mL",
+      "uncertainty": {"scale": 5.0}
+    }
+  ],
+  "backend": "numpy-lumped-v1",
+  "parameter_bounds": {
+    "passive.a_mmHg": [0.01, 0.5],
+    "passive.b": [0.01, 0.15],
+    "active.emax_mmHg_per_ml": [0.5, 5.0]
+  },
+  "settings": {"discrepancy": "student_t"}
+}

@@ -1,46 +1,46 @@
 # CardiMech architecture
 
-CardiMech is the mechanics/electromechanics layer between personalized anatomy, electrophysiology, circulation, inference, and HeartTwin.
+CardiMech owns the mechanics-specific contract and solver orchestration layer between personalized anatomy, electrophysiology, measured deformation/hemodynamics, inference, and HeartTwin.
+
+## Design rules
+
+1. **One stable Virelion contract, many solvers.** Core code must not force PETSc/MPI/FEniCSx on every HeartTwin deployment.
+2. **Fast reference != high fidelity.** `numpy-lumped-v1` exists for deterministic plumbing and regression and is always labelled non-spatial.
+3. **Anatomy remains upstream.** Geometry, fibres, scar and coordinate frames are CardiAnatomy responsibilities.
+4. **EP remains upstream.** Activation/repolarization fields are accepted through `activation_ref`; CardiMech does not reimplement EP.
+5. **Inference remains downstream.** CardiMech exposes predictions and prepares likelihood mappings; CardiInfer owns posterior inference.
+6. **CFD remains separate.** Detailed blood flow belongs in CardiFlow. CardiMech only owns the circulation necessary to load/couple myocardial mechanics.
+7. **Every solver declares fidelity and limitations.** Availability is not a validation claim.
+
+## Core layers
 
 ```text
-CardiAnatomy
- mesh + fibers + regions
-          |
-          +---- CardiEP activation / timing
-          |              |
-          v              v
-      mechanics domain + parameters
-                    |
-          boundary/loading conditions
-                    |
-          registered mechanics backend
-                    |
-        displacement / strain / stress
-                    |
-       pressure-volume / chamber metrics
-                    |
-          optional 0D circulation
-                    |
-             CardiInfer / HeartTwin
+models.py         versioned public contracts
+materials.py      constitutive reference utilities
+activation.py     active-tension timing utilities
+pv.py             pressure-volume and reduced-order mechanics metrics
+circulation.py    dependency-light 0D reference circulation
+backends.py       backend protocol + plugin discovery
+reference_backend.py
+                  deterministic reduced-order mechanics backend
+calibration.py    observation -> CardiInfer likelihood contract
+service.py        backend registry, QC and subject guards
+api.py            HeartTwin-native facade
+validation.py     deterministic software-reference suite
 ```
 
-## Responsibility boundary
+## Spatial backend contract
 
-CardiMech owns myocardial mechanics execution and mechanics-specific contracts. CardiAnatomy owns geometry and coordinate frames. CardiEP owns electrical activation. CardiInfer owns posterior inference and uncertainty. CardiFlow owns detailed flow/CFD when introduced.
+A high-fidelity backend receives the unchanged `MechanicsSimulationRequest` and is responsible for resolving `anatomy_ref`, optional `activation_ref`, material parameters, BCs, circulation settings, solver settings, and output artifacts. It must return a `MechanicsSimulationResult` and must not silently claim empirical validation.
 
-The first circulation target should be a lightweight 0D coupling contract. Full chamber/vascular CFD belongs in CardiFlow rather than CardiMech.
+Recommended spatial outputs are displacement, deformation gradient, strain, stress, cavity volume, cavity pressure and solver diagnostics with explicit coordinate frame and units.
 
-## Backend roadmap
+## Coupling strategy
 
-Potential backend families include finite-element passive mechanics, active-tension models, electromechanical solvers, and FEniCS/FEniCSx-based implementations. Heavy dependencies should stay optional and solver-specific.
+CardiEP -> CardiMech is an explicit artifact handoff, allowing staggered electromechanics by default. Tightly coupled plugins may internally perform stronger coupling but should report that algorithm in provenance.
 
-## Validation ladder
+Mechanics <-> circulation coupling is solver-specific. The built-in reference backend advances LV volume and arterial pressure explicitly with diode valve laws; high-fidelity adapters can use monolithic or partitioned coupling.
 
-1. Contract/software checks.
-2. Mesh/material/boundary-condition consistency.
-3. Numerical convergence and benchmark problems.
-4. Synthetic parameter recovery through CardiInfer.
-5. Held-out imaging/hemodynamic agreement.
-6. External patient/cohort validation.
+## Calibration strategy
 
-Numerical convergence alone does not establish physiological correctness.
+Measured mechanics evidence is represented as `MechanicsObservation`. `prepare_calibration` maps each observation to a named mechanics output and emits a CardiInfer-compatible prior/likelihood/forward-template bundle. This prevents a second inference framework from growing inside CardiMech.

@@ -28,3 +28,6 @@ jobs:
       - run: ruff check src tests
       - run: pytest -q
       - run: cardimech doctor
+      - run: cardimech validate-reference
+      - run: cardimech simulate examples/reference_request.json > /tmp/reference.json
+      - run: python -c "import json; d=json.load(open('/tmp/reference.json')); assert d['qc']['passed']"
