@@ -23,7 +23,7 @@ EXTERNAL_ECOSYSTEM = (
     ExternalProject(
         "pulse",
         "finsberg/pulse",
-        "MIT",
+        "LGPL-3.0",
         ("legacy FEniCS mechanics", "continuum mechanics"),
         "reference architecture; prefer fenicsx-pulse for new deployments",
     ),

@@ -3,7 +3,7 @@
 CardiMech core does not vendor code from the projects below. Names and URLs are retained to document research provenance, integration targets, and license review.
 
 - fenicsx-pulse — https://github.com/finsberg/fenicsx-pulse — MIT
-- pulse — https://github.com/finsberg/pulse — MIT
+- pulse — https://github.com/finsberg/pulse — LGPL-3.0
 - simcardems2 — https://github.com/ComputationalPhysiology/simcardems2 — MIT
 - Ambit — https://github.com/marchirschvogel/ambit — MIT
 - CardioMechanics — https://github.com/KIT-IBT/CardioMechanics — GPL-3.0

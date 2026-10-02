@@ -19,6 +19,7 @@ from .subprocess_backend import SubprocessMechanicsBackend
 __all__ = [
     "ArtifactRef",
     "BoundaryCondition",
+    "CardiMechService",
     "CirculationCoupling",
     "MechanicalParameterSet",
     "MechanicsAPI",
@@ -28,7 +29,6 @@ __all__ = [
     "MechanicsQC",
     "MechanicsSimulationRequest",
     "MechanicsSimulationResult",
-    "CardiMechService",
     "ReadinessError",
     "SubprocessMechanicsBackend",
 ]

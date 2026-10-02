@@ -5,7 +5,7 @@ This document records architecture and implementation ideas intentionally mined 
 | Project | Useful pattern for CardiMech | Integration stance |
 |---|---|---|
 | fenicsx-pulse | separation of material models, boundary/loading description, mechanics problem and solver | preferred optional FEniCSx adapter target |
-| pulse | mature predecessor patterns for mechanics BCs and nonlinear solve workflows | architecture/reference |
+| pulse | mature predecessor patterns for mechanics BCs and nonlinear solve workflows | architecture/reference; LGPL-3.0 upstream, not vendored |
 | simcardems2 | explicit staggered electrophysiology-mechanics coupling | adapter/reference |
 | Ambit | multiphysics separation and 0D/solid/FSI coupling | plugin/external backend candidate |
 | CardioMechanics | passive/active tissue, reference recovery, parameter optimization and lumped circulation | external backend/reference; license reviewed separately |

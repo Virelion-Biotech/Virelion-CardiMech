@@ -56,7 +56,7 @@ class ReferenceLumpedBackend:
         cycles = int(settings.get("cycles", 5))
         if cycle_length <= 0 or dt <= 0 or cycles < 2:
             raise ValueError("cycle_length_s/dt_s must be positive and cycles must be >= 2")
-        steps = int(round(cycles * cycle_length / dt)) + 1
+        steps = round(cycles * cycle_length / dt) + 1
         max_steps = int(settings.get("max_steps", 500_000))
         if steps > max_steps:
             raise ValueError(f"Reference simulation requires {steps} steps, exceeding max_steps={max_steps}")

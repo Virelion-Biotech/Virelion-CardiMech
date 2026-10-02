@@ -1,6 +1,11 @@
 import pytest
 
-from cardimech import ArtifactRef, CardiMechService, MechanicalParameterSet, MechanicsSimulationRequest
+from cardimech import (
+    ArtifactRef,
+    CardiMechService,
+    MechanicalParameterSet,
+    MechanicsSimulationRequest,
+)
 from cardimech.backends import BackendUnavailable
 
 

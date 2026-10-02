@@ -5,8 +5,8 @@ import shlex
 import shutil
 import subprocess
 import tempfile
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from .backends import BackendExecutionError
 from .models import MechanicsSimulationRequest, MechanicsSimulationResult

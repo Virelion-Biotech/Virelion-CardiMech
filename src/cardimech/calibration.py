@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from .models import MechanicsCalibrationBundle, MechanicsCalibrationRequest
 
-
 _OUTPUT_BY_OBSERVATION = {
     "end_diastolic_volume": "scalar_outputs.edv_ml",
     "end_systolic_volume": "scalar_outputs.esv_ml",
