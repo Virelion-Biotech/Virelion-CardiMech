@@ -16,6 +16,7 @@ io = ["meshio>=5.3"]
 [project.scripts]
 cardimech = "cardimech.cli:main"
 cardimech-forward = "cardimech.forward_cli:main"
+cardimech-hearttwin = "cardimech.hearttwin_cli:main"
 
 [build-system]
 requires = ["setuptools>=68"]
