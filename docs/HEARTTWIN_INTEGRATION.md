@@ -39,3 +39,15 @@ The built-in reduced-order backend may be used in clean-stack CI without spatial
 ## Inference boundary
 
 CardiMech's calibration endpoint creates a problem definition; it does not fit a posterior. CardiInfer is the single inverse-problem layer for ABC-SMC, MCMC, MAP, sensitivity, identifiability, and uncertainty propagation.
+
+
+## Native HeartTwin.run envelopes
+
+The command adapter accepts both direct CardiMech requests and the generic HeartTwin
+orchestrator envelope. For an orchestrated mechanics solve, put the complete
+MechanicsSimulationRequest template under context.cardimech_request; HeartTwin's
+entity_id becomes the authoritative subject_id.
+
+For calibration preparation, use context.cardimech_calibration_request with a complete
+MechanicsCalibrationRequest template. This keeps HeartTwin's generic run contract
+stable while preserving CardiMech's strict specialist schemas.

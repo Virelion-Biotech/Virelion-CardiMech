@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+from copy import deepcopy
 from typing import Any
 
 from .api import MechanicsAPI
@@ -19,6 +20,32 @@ def _payload() -> dict[str, Any]:
     return data
 
 
+def _context_request(
+    payload: dict[str, Any],
+    *,
+    context_key: str,
+) -> dict[str, Any]:
+    """Translate the generic HeartTwin envelope into a CardiMech-native request.
+
+    Direct native requests remain supported. Orchestrated calls provide the full
+    specialist request under the requested context key; HeartTwin's entity_id is
+    authoritative for subject identity.
+    """
+    if "subject_id" in payload:
+        return payload
+    context = payload.get("context")
+    if not isinstance(context, dict):
+        return payload
+    template = context.get(context_key)
+    if not isinstance(template, dict):
+        return payload
+    request = deepcopy(template)
+    entity_id = payload.get("entity_id")
+    if isinstance(entity_id, str) and entity_id:
+        request["subject_id"] = entity_id
+    return request
+
+
 def dispatch(capability: str, payload: dict[str, Any]) -> dict[str, Any]:
     api = MechanicsAPI()
     if capability == "mechanics.health":
@@ -28,9 +55,11 @@ def dispatch(capability: str, payload: dict[str, Any]) -> dict[str, Any]:
     if capability == "mechanics.materials":
         return api.materials()
     if capability == "mechanics.simulate":
-        return api.simulate(payload)
+        request = _context_request(payload, context_key="cardimech_request")
+        return api.simulate(request)
     if capability == "mechanics.prepare_calibration":
-        return api.prepare_calibration(payload)
+        request = _context_request(payload, context_key="cardimech_calibration_request")
+        return api.prepare_calibration(request)
     if capability == "mechanics.validate.reference":
         return api.validate_reference()
     if capability == "mechanics.ecosystem":
