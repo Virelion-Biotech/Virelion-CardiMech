@@ -1,0 +1,20 @@
+{
+  "subject_id": "SYNTH-001",
+  "anatomy_ref": {
+    "artifact_id": "synthetic-lv",
+    "kind": "reference_geometry",
+    "uri": "memory://synthetic-lv"
+  },
+  "backend": "numpy-lumped-v1",
+  "parameters": {
+    "passive": {"v0_ml": 10.0, "a_mmHg": 0.08, "b": 0.055},
+    "active": {"emax_mmHg_per_ml": 2.1, "rise_s": 0.07, "decay_s": 0.24},
+    "source": "fixed"
+  },
+  "circulation": {
+    "enabled": true,
+    "model": "windkessel_3e",
+    "parameters": {"r_systemic": 1.0, "c_arterial": 1.5}
+  },
+  "settings": {"cycles": 5, "dt_s": 0.001, "inline_series": false}
+}
