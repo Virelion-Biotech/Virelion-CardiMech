@@ -60,6 +60,11 @@ def prepare_calibration(request: MechanicsCalibrationRequest) -> MechanicsCalibr
     template = {
         "subject_id": request.subject_id,
         "anatomy_ref": request.anatomy_ref.model_dump(mode="json"),
+        "activation_ref": (
+            None
+            if request.activation_ref is None
+            else request.activation_ref.model_dump(mode="json")
+        ),
         "backend": request.backend,
         "parameters": {
             "passive": passive,
