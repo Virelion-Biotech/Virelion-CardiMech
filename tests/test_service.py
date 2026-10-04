@@ -4,12 +4,12 @@ from cardimech import (
     ArtifactRef,
     CardiMechService,
     MechanicalParameterSet,
+    MechanicsQC,
     MechanicsSimulationRequest,
     MechanicsSimulationResult,
-    MechanicsQC,
 )
-from cardimech.service import ReadinessError
 from cardimech.backends import BackendUnavailable
+from cardimech.service import ReadinessError
 
 
 def test_service_has_reference_backend() -> None:
