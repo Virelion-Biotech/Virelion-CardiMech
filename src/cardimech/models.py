@@ -202,6 +202,7 @@ class MechanicsCalibrationRequest(BaseModel):
 
     subject_id: str
     anatomy_ref: ArtifactRef
+    activation_ref: ArtifactRef | None = None
     observations: list[MechanicsObservation]
     backend: str = "numpy-lumped-v1"
     parameter_bounds: dict[str, tuple[float, float]]
