@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from .backends import BackendUnavailable, MechanicsBackend, discover_plugin_backends
 from .calibration import prepare_calibration
 from .models import (
@@ -54,7 +56,12 @@ class CardiMechService:
         if result.backend != request.backend:
             raise ReadinessError("Backend result identifier does not match request backend")
         if result.qc is not None and not result.qc.passed:
-            raise ReadinessError("Mechanics result failed QC")
+            details = json.dumps(
+                result.qc.model_dump(mode="json"),
+                sort_keys=True,
+                allow_nan=False,
+            )
+            raise ReadinessError(f"Mechanics result failed QC: {details}")
 
         result.provenance.setdefault("anatomy_artifact_id", request.anatomy_ref.artifact_id)
         if request.anatomy_ref.sha256 is not None:
