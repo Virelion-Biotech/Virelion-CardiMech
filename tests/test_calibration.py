@@ -6,6 +6,11 @@ def test_prepare_calibration_maps_observation_and_parameters() -> None:
     request = MechanicsCalibrationRequest(
         subject_id="S1",
         anatomy_ref=ArtifactRef(artifact_id="mesh", kind="volume_mesh", uri="memory://mesh"),
+        activation_ref=ArtifactRef(
+            artifact_id="ep-activation",
+            kind="activation_map",
+            uri="memory://activation",
+        ),
         backend="numpy-lumped-v1",
         observations=[
             MechanicsObservation(
@@ -23,5 +28,10 @@ def test_prepare_calibration_maps_observation_and_parameters() -> None:
     assert bundle.likelihood[0]["model_output"] == "scalar_outputs.edv_ml"
     assert {item["name"] for item in bundle.priors} == {"passive.a_mmHg", "active.emax_mmHg_per_ml"}
     assert bundle.forward_template["backend"] == "numpy-lumped-v1"
+    assert bundle.forward_template["activation_ref"]["artifact_id"] == "ep-activation"
+    assert (
+        bundle.model_context["cardimech_request"]["activation_ref"]["artifact_id"]
+        == "ep-activation"
+    )
     assert bundle.model_context["forward_model"]["command"] == ["cardimech-forward"]
     assert bundle.cardiinfer_request["model_capability"] == "mechanics.simulate"
