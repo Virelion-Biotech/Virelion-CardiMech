@@ -55,6 +55,23 @@ class CardiMechService:
             raise ReadinessError("Backend result identifier does not match request backend")
         if result.qc is not None and not result.qc.passed:
             raise ReadinessError("Mechanics result failed QC")
+
+        result.provenance.setdefault("anatomy_artifact_id", request.anatomy_ref.artifact_id)
+        if request.anatomy_ref.sha256 is not None:
+            result.provenance.setdefault("anatomy_sha256", request.anatomy_ref.sha256)
+        bundle_fingerprint = request.anatomy_ref.metadata.get("bundle_fingerprint")
+        if bundle_fingerprint is not None:
+            result.provenance.setdefault(
+                "anatomy_bundle_fingerprint", str(bundle_fingerprint)
+            )
+        if request.activation_ref is not None:
+            result.provenance.setdefault(
+                "activation_artifact_id", request.activation_ref.artifact_id
+            )
+            if request.activation_ref.sha256 is not None:
+                result.provenance.setdefault(
+                    "activation_sha256", request.activation_ref.sha256
+                )
         return result
 
     def prepare_calibration(self, request: MechanicsCalibrationRequest) -> MechanicsCalibrationBundle:
