@@ -26,13 +26,13 @@ HeartTwin should preserve backend name, parameter source, anatomy and activation
 
 The built-in reduced-order backend may be used in clean-stack CI without spatial geometry. For scientific spatial mechanics, HeartTwin should first call CardiAnatomy readiness validation with `target="mechanics"` and then select an installed spatial backend.
 
-## Native registry entry
+## HeartTwin registry entry
 
 ```yaml
 - name: CardiMech
   repository: Virelion-Biotech/Virelion-CardiMech
   capabilities: [mechanics.health, mechanics.backends, mechanics.materials, mechanics.simulate, mechanics.prepare_calibration, mechanics.validate.reference, mechanics.ecosystem]
-  builtin: cardimech
+  command: [cardimech-hearttwin]
   endpoint: ${CARDIMECH_URL}
 ```
 
@@ -41,13 +41,17 @@ The built-in reduced-order backend may be used in clean-stack CI without spatial
 CardiMech's calibration endpoint creates a problem definition; it does not fit a posterior. CardiInfer is the single inverse-problem layer for ABC-SMC, MCMC, MAP, sensitivity, identifiability, and uncertainty propagation.
 
 
-## Native HeartTwin.run envelopes
+## HeartTwin request envelopes
 
-The command adapter accepts both direct CardiMech requests and the generic HeartTwin
-orchestrator envelope. For an orchestrated mechanics solve, put the complete
-MechanicsSimulationRequest template under context.cardimech_request; HeartTwin's
-entity_id becomes the authoritative subject_id.
+HeartTwin invokes CardiMech through the `cardimech-hearttwin` command adapter, with
+HTTP as the deployment fallback. Direct CardiMech requests remain supported. The
+generic `HeartTwin.run()` API now requires a complete specialist request under
+`context.cardimech_request` for `mechanics.simulate` and under
+`context.cardimech_calibration_request` for calibration preparation; it does not
+broadcast the generic observation envelope into the strict mechanics schema.
 
-For calibration preparation, use context.cardimech_calibration_request with a complete
-MechanicsCalibrationRequest template. This keeps HeartTwin's generic run contract
-stable while preserving CardiMech's strict specialist schemas.
+`MechanicsCalibrationRequest.activation_ref` is carried into the generated
+CardiInfer forward template, so the EP activation artifact used to define calibration
+is the same artifact consumed by posterior forward evaluations. CardiMech result
+provenance records anatomy identity/bundle fingerprint plus activation artifact ID
+and SHA-256 for HeartTwin lineage verification.
