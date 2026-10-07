@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from copy import deepcopy
 from typing import Any
 
@@ -9,14 +10,7 @@ class ForwardEnvelopeError(ValueError):
 
 
 def _is_native_request(payload: dict[str, Any]) -> bool:
-    parameters = payload.get("parameters")
-    return bool(
-        payload.get("subject_id")
-        and payload.get("anatomy_ref")
-        and payload.get("backend")
-        and isinstance(parameters, dict)
-        and ("passive" in parameters or "active" in parameters)
-    )
+    return bool(payload.get("subject_id") and payload.get("anatomy_ref"))
 
 
 def _apply_flat_parameter(request: dict[str, Any], name: str, value: float) -> None:
@@ -59,6 +53,8 @@ def normalize_simulation_payload(payload: dict[str, Any]) -> dict[str, Any]:
     template without allowing them to overwrite anatomy, backend, file paths, or arbitrary
     settings.
     """
+    if not isinstance(payload, dict):
+        raise ForwardEnvelopeError("Mechanics payload must be an object")
     if _is_native_request(payload):
         return dict(payload)
 
@@ -85,5 +81,7 @@ def normalize_simulation_payload(payload: dict[str, Any]) -> dict[str, Any]:
     for name, raw_value in sampled.items():
         if isinstance(raw_value, bool) or not isinstance(raw_value, (int, float)):
             raise ForwardEnvelopeError(f"Sampled mechanics parameter {name!r} must be numeric")
+        if not math.isfinite(raw_value):
+            raise ForwardEnvelopeError("Sampled mechanics parameters must be finite")
         _apply_flat_parameter(request, str(name), float(raw_value))
     return request

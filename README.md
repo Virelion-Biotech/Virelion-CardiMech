@@ -109,7 +109,7 @@ CardiMech does not duplicate Bayesian inference. It converts mechanics observati
 cardimech prepare-calibration calibration.json
 ```
 
-Supported observation mappings include EDV, ESV, EF, peak pressure, pressure/volume curves, PV loops, strain curves, and stroke work. The generated bundle contains priors, likelihood terms, and a canonical forward-template payload for `mechanics.simulate`.
+Supported automatic observation mappings include EDV, ESV, EF, peak pressure, pressure/volume curves, strain curves, wall thickness, and stroke work. PV loops require separate pressure and volume terms; displacement/other observations require explicit output paths supported by the selected backend. The generated bundle contains priors, likelihood terms, and a canonical forward-template payload for `mechanics.simulate`.
 
 ## High-fidelity backends
 
@@ -146,3 +146,50 @@ Passing the reference validation establishes only software behavior. It does not
 ## License
 
 AGPL-3.0-or-later. Third-party tools retain their own licenses and terms.
+
+## CPU verification and constitutive points (0.3.0)
+
+```bash
+python -m pip install -e '.[dev,validation]'
+python -m pytest -q --cov=cardimech
+python scripts/validate_cpu.py
+python scripts/validate_lv.py
+cardimech material-point examples/material_point.json --output /tmp/material.json
+cardimech simulate examples/reference_request.json --output /tmp/mechanics.json
+cardimech prepare-calibration examples/calibration_request.json --output /tmp/bundle.json
+```
+
+`material-point` evaluates energy and Green strain for four constitutive families,
+plus exact first Piola and Cauchy stress for Neo-Hookean. Energy and stress use the
+input parameter stress unit; deformation gradients are dimensionless. This utility
+is independent of the LV backend, which evaluates PV/elastance parameters rather
+than continuum material laws. The HO-style compressible variant now uses an
+isochoric isotropic invariant and full directional invariants, with a quadratic
+volume penalty. This avoids residual isotropic stress at identity; it changes
+volumetric behavior compared with 0.2.0.
+
+JSON rejects non-finite numbers and duplicate keys. Output files use atomic
+replacement and SHA-256 fingerprints. Reference settings, parameter names, spatial
+boundary conditions, unsupported circulation modes and state artifacts now fail
+explicitly. `cycles` must be an integer; the time grid aligns exactly to cycles and
+reports the effective step. `qc.converged` reports actual periodic convergence.
+Set `require_periodic_convergence=true` and explicit pressure/volume tolerances to
+make that a required QC gate. Default basic QC is not proof of steady state.
+
+Disabling stack circulation coupling leaves the reference model's intrinsic
+afterload, declared in warnings/provenance. Wall stress is a spherical thin-wall
+approximation; a thickness/radius warning explains when this approximation is
+outside a conventional thin-wall range. Stroke work closes the sampled PV polygon
+and is also reported in joules; a non-periodic run is not a steady-cycle work estimate.
+
+Calibration defaults to Gaussian likelihood when uncertainty is supplied (legacy
+`scale` becomes `sigma`) and RMSE otherwise. Proper likelihoods default to
+Metropolis; distance terms default to ABC. Mixed semantics and incompatible noise
+are rejected. Inline observed data and observation paths survive the handoff;
+physical units must match output units. Time/region alignment and noise validation
+remain the caller's responsibility. The example is explicitly synthetic. Forward
+evaluations remove shared `output_dir` to prevent concurrent calibration artifacts
+from overwriting one another.
+
+See [the audit and scientific evidence](docs/CPU_AUDIT.md). No GPU is needed for
+these verified workflows; spatial FE solving and empirical validation remain open.

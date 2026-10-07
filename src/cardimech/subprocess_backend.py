@@ -10,6 +10,7 @@ from pathlib import Path
 
 from .backends import BackendExecutionError
 from .models import MechanicsSimulationRequest, MechanicsSimulationResult
+from .serialization import finite_number, strict_loads
 
 
 class SubprocessMechanicsBackend:
@@ -32,8 +33,7 @@ class SubprocessMechanicsBackend:
         argv = shlex.split(command) if isinstance(command, str) else list(command)
         if not name or not argv:
             raise ValueError("External backend requires a non-empty name and command")
-        if timeout_s <= 0:
-            raise ValueError("timeout_s must be positive")
+        finite_number(timeout_s, "timeout_s", strictly_positive=True)
         self.name = name
         self.command = argv
         self.executable = executable or argv[0]
@@ -64,7 +64,9 @@ class SubprocessMechanicsBackend:
             request_path = root / "request.json"
             output_path = root / "result.json"
             request_path.write_text(
-                json.dumps(request.model_dump(mode="json"), indent=2, sort_keys=True, allow_nan=False)
+                json.dumps(
+                    request.model_dump(mode="json"), indent=2, sort_keys=True, allow_nan=False
+                )
                 + "\n",
                 encoding="utf-8",
             )
@@ -94,13 +96,17 @@ class SubprocessMechanicsBackend:
                 )
             try:
                 if output_path.is_file():
-                    payload = json.loads(output_path.read_text(encoding="utf-8"))
+                    payload = strict_loads(output_path.read_text(encoding="utf-8"))
                 elif process.stdout.strip():
-                    payload = json.loads(process.stdout)
+                    payload = strict_loads(process.stdout)
                 else:
-                    raise BackendExecutionError("External mechanics backend produced no result JSON")
-            except json.JSONDecodeError as exc:
-                raise BackendExecutionError("External mechanics backend returned invalid JSON") from exc
+                    raise BackendExecutionError(
+                        "External mechanics backend produced no result JSON"
+                    )
+            except (ValueError, TypeError) as exc:
+                raise BackendExecutionError(
+                    "External mechanics backend returned invalid JSON"
+                ) from exc
             try:
                 return MechanicsSimulationResult.model_validate(payload)
             except Exception as exc:

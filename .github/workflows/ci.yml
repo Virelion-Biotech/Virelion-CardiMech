@@ -16,18 +16,52 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-      - run: python -m pip install --upgrade pip
-      - run: python -m pip install -e '.[dev]'
-      - run: ruff check src tests
-      - run: pytest -q
+      - run: python -m pip install -e '.[dev,validation]'
+      - run: ruff check src tests scripts
+      - run: ruff format --check src tests scripts
+      - run: pytest -q --cov=cardimech --cov-fail-under=80
       - run: cardimech doctor
       - run: cardimech validate-reference
-      - run: cardimech simulate examples/reference_request.json > /tmp/reference.json
+      - run: cardimech simulate examples/reference_request.json --output /tmp/reference.json
       - run: python -c "import json; d=json.load(open('/tmp/reference.json')); assert d['qc']['passed']"
+      - run: cardimech prepare-calibration examples/calibration_request.json --output /tmp/calibration.json
+      - run: python scripts/validate_cpu.py
+      - run: python scripts/validate_lv.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cpu-verification-${{ matrix.python-version }}
+          path: validation/cpu/*.json
+  cardiinfer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Virelion-Biotech/Virelion-CardiInfer
+          ref: 15a7bd5bf4c23784245b361c017a376572766254
+          path: stack/CardiInfer
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e '.[dev]' -e ./stack/CardiInfer
+      - run: pytest -q tests/test_cardiinfer_integration.py
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install build
+      - run: python -m build
+      - run: python -m venv /tmp/cardimech-wheel
+      - run: /tmp/cardimech-wheel/bin/pip install dist/*.whl
+      - run: cd /tmp && /tmp/cardimech-wheel/bin/cardimech validate-reference
+      - run: cd /tmp && /tmp/cardimech-wheel/bin/cardimech simulate "$GITHUB_WORKSPACE/examples/reference_request.json" --output /tmp/wheel-result.json

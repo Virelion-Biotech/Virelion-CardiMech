@@ -14,7 +14,11 @@ def envelope() -> dict:
         "context": {
             "cardimech_request": {
                 "subject_id": "S1",
-                "anatomy_ref": {"artifact_id": "a", "kind": "reference_geometry", "uri": "memory://a"},
+                "anatomy_ref": {
+                    "artifact_id": "a",
+                    "kind": "reference_geometry",
+                    "uri": "memory://a",
+                },
                 "backend": "numpy-lumped-v1",
                 "parameters": {"passive": {"v0_ml": 10.0}, "active": {}, "source": "prior"},
                 "settings": {"cycles": 4, "dt_s": 0.001, "inline_series": False},

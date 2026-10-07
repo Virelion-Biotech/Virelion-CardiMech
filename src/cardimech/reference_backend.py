@@ -10,6 +10,7 @@ from .circulation import WindkesselParameters, simulate_lv_windkessel
 from .handoff import cardiep_activation_delay_s
 from .models import MechanicsQC, MechanicsSimulationRequest, MechanicsSimulationResult
 from .pv import chamber_pressure_mmHg, pv_metrics, spherical_wall_metrics
+from .serialization import finite_number, integer, strict_bool
 
 
 class ReferenceLumpedBackend:
@@ -50,18 +51,91 @@ class ReferenceLumpedBackend:
         return float(values.get(name, default))
 
     def simulate(self, request: MechanicsSimulationRequest) -> MechanicsSimulationResult:
+        request = MechanicsSimulationRequest.model_validate(request.model_dump(mode="json"))
+        if request.parameters.active_model != "periodic_hill":
+            raise ValueError("Reference backend supports only periodic_hill activation")
         settings = dict(request.settings)
-        cycle_length = float(settings.get("cycle_length_s", 0.8))
-        dt = float(settings.get("dt_s", 0.001))
-        cycles = int(settings.get("cycles", 5))
-        if cycle_length <= 0 or dt <= 0 or cycles < 2:
-            raise ValueError("cycle_length_s/dt_s must be positive and cycles must be >= 2")
-        steps = round(cycles * cycle_length / dt) + 1
-        max_steps = int(settings.get("max_steps", 500_000))
+        allowed_settings = {
+            "cycle_length_s",
+            "dt_s",
+            "cycles",
+            "max_steps",
+            "activation_quantile",
+            "wall_thickness_cm",
+            "p_atrium_mmHg",
+            "p_venous_mmHg",
+            "initial_lv_volume_ml",
+            "max_volume_step_ml",
+            "cycle_volume_tolerance_ml",
+            "cycle_pressure_tolerance_mmHg",
+            "require_periodic_convergence",
+            "inline_series",
+            "output_dir",
+        }
+        if unknown := set(settings) - allowed_settings:
+            raise ValueError(f"Unsupported reference settings: {sorted(unknown)}")
+        for values, allowed in (
+            (request.parameters.passive, {"v0_ml", "a_mmHg", "b"}),
+            (request.parameters.active, {"emax_mmHg_per_ml", "rise_s", "decay_s", "onset_s"}),
+            (
+                request.circulation.parameters,
+                {
+                    "p_atrium_mmHg",
+                    "p_venous_mmHg",
+                    "r_mitral",
+                    "r_aortic",
+                    "r_systemic",
+                    "c_arterial",
+                    "initial_arterial_pressure_mmHg",
+                    "initial_lv_volume_ml",
+                },
+            ),
+        ):
+            if unknown := set(values) - allowed:
+                raise ValueError(f"Unsupported reference parameters: {sorted(unknown)}")
+        if request.boundary_conditions:
+            raise ValueError("Reference backend cannot apply spatial boundary conditions")
+        if request.circulation.model not in {"none", "windkessel_3e"}:
+            raise ValueError("Reference backend supports only its intrinsic/Windkessel afterload")
+        if request.circulation.state_ref is not None:
+            raise ValueError("Reference backend cannot load circulation state artifacts")
+        if not request.circulation.enabled and request.circulation.parameters:
+            raise ValueError("Circulation parameters require enabled coupling")
+        cycle_length = finite_number(
+            settings.get("cycle_length_s", 0.8), "cycle_length_s", strictly_positive=True
+        )
+        dt = finite_number(settings.get("dt_s", 0.001), "dt_s", strictly_positive=True)
+        cycles = integer(settings.get("cycles", 5), "cycles", minimum=2)
+        max_steps = integer(settings.get("max_steps", 500_000), "max_steps", minimum=3)
+        if cycle_length / dt > (max_steps - 1) / cycles:
+            raise ValueError("Reference simulation exceeds max_steps")
+        intervals = int(np.ceil(cycle_length / dt))
+        if intervals < 2:
+            raise ValueError("dt_s must resolve at least two intervals per cycle")
+        steps = cycles * intervals + 1
         if steps > max_steps:
-            raise ValueError(f"Reference simulation requires {steps} steps, exceeding max_steps={max_steps}")
-        time = np.linspace(0.0, cycles * cycle_length, steps)
-
+            raise ValueError("Reference simulation exceeds max_steps after cycle alignment")
+        effective_dt = cycle_length / intervals
+        time = np.arange(steps, dtype=float) * effective_dt
+        if not np.all(np.isfinite(time)):
+            raise OverflowError("Simulation time grid exceeds float64 range")
+        require_convergence = strict_bool(
+            settings.get("require_periodic_convergence", False), "require_periodic_convergence"
+        )
+        inline_series = strict_bool(settings.get("inline_series", True), "inline_series")
+        volume_tolerance = finite_number(
+            settings.get("cycle_volume_tolerance_ml", 15.0),
+            "cycle_volume_tolerance_ml",
+            strictly_positive=True,
+        )
+        pressure_tolerance = finite_number(
+            settings.get("cycle_pressure_tolerance_mmHg", 15.0),
+            "cycle_pressure_tolerance_mmHg",
+            strictly_positive=True,
+        )
+        max_volume_step = finite_number(
+            settings.get("max_volume_step_ml", 5.0), "max_volume_step_ml", strictly_positive=True
+        )
         passive = request.parameters.passive
         active = request.parameters.active
         v0 = self._parameter(passive, "v0_ml", 10.0)
@@ -78,7 +152,9 @@ class ReferenceLumpedBackend:
                 quantile=float(settings.get("activation_quantile", 0.5)),
             )
             onset_s += ep_delay_s
-        wall_thickness_cm = float(settings.get("wall_thickness_cm", 1.0))
+        wall_thickness_cm = finite_number(
+            settings.get("wall_thickness_cm", 1.0), "wall_thickness_cm", strictly_positive=True
+        )
 
         activation = periodic_hill_activation(
             time,
@@ -96,8 +172,12 @@ class ReferenceLumpedBackend:
             r_aortic_mmHg_s_per_ml=float(cparams.get("r_aortic", 0.015)),
             r_systemic_mmHg_s_per_ml=float(cparams.get("r_systemic", 1.0)),
             c_arterial_ml_per_mmHg=float(cparams.get("c_arterial", 1.5)),
-            initial_arterial_pressure_mmHg=float(cparams.get("initial_arterial_pressure_mmHg", 75.0)),
-            initial_lv_volume_ml=float(cparams.get("initial_lv_volume_ml", settings.get("initial_lv_volume_ml", 120.0))),
+            initial_arterial_pressure_mmHg=float(
+                cparams.get("initial_arterial_pressure_mmHg", 75.0)
+            ),
+            initial_lv_volume_ml=float(
+                cparams.get("initial_lv_volume_ml", settings.get("initial_lv_volume_ml", 120.0))
+            ),
         )
 
         def pressure_fn(t_s: float, volume_ml: float) -> float:
@@ -123,7 +203,7 @@ class ReferenceLumpedBackend:
 
         series = simulate_lv_windkessel(time_s=time, pressure_fn=pressure_fn, params=wk)
         series["activation"] = activation
-        start = int(np.searchsorted(time, (cycles - 1) * cycle_length, side="left"))
+        start = (cycles - 1) * intervals
         final = {name: values[start:] for name, values in series.items()}
         radius, strain, stress = spherical_wall_metrics(
             final["lv_volume_ml"],
@@ -141,10 +221,12 @@ class ReferenceLumpedBackend:
                 "peak_wall_stress_kpa": float(np.max(stress)),
                 "min_circumferential_strain": float(np.min(strain)),
                 "max_circumferential_strain": float(np.max(strain)),
+                "wall_thickness_cm": wall_thickness_cm,
+                "thin_wall_ratio_max": float(np.max(wall_thickness_cm / radius)),
             }
         )
 
-        prior_start = int(np.searchsorted(time, (cycles - 2) * cycle_length, side="left"))
+        prior_start = (cycles - 2) * intervals
         prior_end = start + 1
         prior_v = series["lv_volume_ml"][prior_start:prior_end]
         prior_p = series["arterial_pressure_mmHg"][prior_start:prior_end]
@@ -158,27 +240,40 @@ class ReferenceLumpedBackend:
         checks = {
             "finite_outputs": bool(all(np.all(np.isfinite(value)) for value in final.values())),
             "positive_volume": bool(np.min(final["lv_volume_ml"]) > 0.0),
-            "bounded_activation": bool(np.min(final["activation"]) >= 0.0 and np.max(final["activation"]) <= 1.0),
-            "stable_time_step": bool(max_v_step < float(settings.get("max_volume_step_ml", 5.0))),
+            "bounded_activation": bool(
+                np.min(final["activation"]) >= 0.0 and np.max(final["activation"]) <= 1.0
+            ),
+            "stable_time_step": bool(max_v_step < max_volume_step),
         }
         converged = bool(
-            cycle_v_residual < float(settings.get("cycle_volume_tolerance_ml", 15.0))
-            and cycle_p_residual < float(settings.get("cycle_pressure_tolerance_mmHg", 15.0))
+            cycle_v_residual < volume_tolerance and cycle_p_residual < pressure_tolerance
         )
         warnings: list[str] = [
             "numpy-lumped-v1 is a non-spatial reference model, not a finite-element mechanics solve.",
             "Reported wall strain/stress use a spherical chamber surrogate.",
         ]
+        if not request.circulation.enabled:
+            warnings.append(
+                "No stack circulation coupling requested; intrinsic reference afterload is used."
+            )
+        if metrics["thin_wall_ratio_max"] > 0.1:
+            warnings.append(
+                "Wall thickness/radius exceeds 0.1; thin-wall Laplace stress is only a surrogate."
+            )
         if activation_handoff is not None:
             warnings.append(
                 "CardiEP spatial activation was reduced to one timing quantile because the reference backend is non-spatial."
             )
         if not converged:
-            warnings.append("Periodic cycle residual did not meet the configured reference tolerance.")
-        passed = all(checks.values()) and (converged or not bool(settings.get("require_periodic_convergence", False)))
+            warnings.append(
+                "Periodic cycle residual did not meet the configured reference tolerance."
+            )
+        if require_convergence:
+            checks["periodic_convergence"] = converged
+        passed = all(checks.values())
         qc = MechanicsQC(
             passed=passed,
-            converged=True if passed and not bool(settings.get("require_periodic_convergence", False)) else converged,
+            converged=converged,
             checks=checks,
             metrics={
                 "cycle_volume_residual_ml": cycle_v_residual,
@@ -220,7 +315,7 @@ class ReferenceLumpedBackend:
             parameters=request.parameters,
             outputs=outputs,
             scalar_outputs=metrics,
-            series=serializable_series if bool(settings.get("inline_series", True)) else {},
+            series=serializable_series if inline_series else {},
             qc=qc,
             validation_status="software_checked",
             warnings=warnings,
@@ -228,14 +323,22 @@ class ReferenceLumpedBackend:
                 "model": "nonlinear LV pressure-volume surrogate + diode-valve arterial Windkessel",
                 "backend_description": self.describe(),
                 "circulation_parameters": asdict(wk),
+                "circulation_mode": "requested_windkessel"
+                if request.circulation.enabled
+                else "intrinsic_reference_afterload",
+                "material_scope": "PV/elastance surrogate; continuum material_model not evaluated",
                 "settings": {
                     "cycle_length_s": cycle_length,
                     "dt_s": dt,
+                    "effective_dt_s": effective_dt,
+                    "intervals_per_cycle": intervals,
                     "cycles": cycles,
                     "wall_thickness_cm": wall_thickness_cm,
                 },
                 "anatomy_ref": request.anatomy_ref.model_dump(mode="json"),
-                "activation_ref": None if request.activation_ref is None else request.activation_ref.model_dump(mode="json"),
+                "activation_ref": None
+                if request.activation_ref is None
+                else request.activation_ref.model_dump(mode="json"),
                 "activation_handoff": activation_handoff,
             },
         )

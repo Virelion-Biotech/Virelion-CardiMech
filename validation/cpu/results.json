@@ -1,0 +1,79 @@
+{
+  "checks": {
+    "neo_hookean_stress_gradient": {
+      "max_absolute_error": 8.397130352166826e-10,
+      "passed": true,
+      "tolerance": 1e-07
+    },
+    "objectivity_and_identity": {
+      "identity_energy": 0.0,
+      "max_error": 1.865174681370263e-14,
+      "passed": true,
+      "tolerance": 1e-10
+    },
+    "six_shear_modes": {
+      "max_absolute_error_kpa": 1.6653345369377348e-16,
+      "passed": true,
+      "samples": 186,
+      "tolerance_kpa": 1e-11
+    },
+    "windkessel_decay_conservation": {
+      "dt_s": [
+        0.02,
+        0.01,
+        0.005
+      ],
+      "errors_mmHg": [
+        0.17228906109443187,
+        0.0858558833740588,
+        0.042856209017081426
+      ],
+      "max_balance_residual_ml": 1.0436096431476471e-14,
+      "passed": true
+    }
+  },
+  "parameter_source": {
+    "kappa": "1000 kPa chosen for verification, not published row",
+    "parameters": {
+      "a": 0.059,
+      "af": 18.472,
+      "afs": 0.216,
+      "as_": 2.481,
+      "b": 8.023,
+      "bf": 16.026,
+      "bfs": 11.436,
+      "bs": 11.12,
+      "kappa": 1000.0
+    },
+    "stress_unit": "kPa",
+    "table": "Table 2, Holzapfel and Ogden (2009) row",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6096751/"
+  },
+  "passed": true,
+  "scope": "Analytic software verification, not experimental or clinical validation",
+  "source_sha256": {
+    "scripts/validate_cpu.py": "3c2e95ea3a34c5b4c747950f5a263e23462363a026524b14b48ed25f2d366e4f",
+    "src/cardimech/__init__.py": "c6bdfe6a7db78ad350d1d8ac856343688b9838245a5601e1832d3e2eed9c859e",
+    "src/cardimech/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "src/cardimech/activation.py": "b99d676118a929b38d91d64020d2477a6833a3c224736e956aeeaa811981fcdd",
+    "src/cardimech/api.py": "a2088daed072b9f559e4fb93a040764414ac131b48be9b34d764c6427e816017",
+    "src/cardimech/artifacts.py": "43524b1e2bf4d7f6205a158143a63fdd532e3d3d149b9250c5123ce559f0b5b3",
+    "src/cardimech/backends.py": "1416307508e8a21f244225e5a8162c75239553e7a0bf775920105e5097f7c431",
+    "src/cardimech/calibration.py": "48aa6b25610ca97f833e6c7de18ad3a1d9a90c1ae08d6901581b0780fa3a89c9",
+    "src/cardimech/circulation.py": "6e8e82495815f3f432f6e7b6fe8ae0fa14319f81a714026cf02e8f23672a8972",
+    "src/cardimech/cli.py": "c53c06bc59dd419d6bc8c5c34c288288f30f160761b81a215698f90324af25d2",
+    "src/cardimech/external.py": "6d43feb32c445c72d64e283f83f87d6b773e70d7721d69da2df636ecadc02e68",
+    "src/cardimech/forward.py": "783bd8b6c6fbd94d15d716743365ff51777eaba27715ab49ce98776489c80fe2",
+    "src/cardimech/forward_cli.py": "3e11c004ad1ea2e0df0f2b027eb3caf3a7a55d734fc1c0cf377a3e36121486eb",
+    "src/cardimech/handoff.py": "3a16625b28675679e5e674b915046fb5f361e3b9c7df76e12bd09d05e539f7fc",
+    "src/cardimech/hearttwin_cli.py": "8928487da7e29c2fc77ac745c8dcf3dbf03a6d3223b27ec7214de2bfe05b940d",
+    "src/cardimech/materials.py": "e008c57c76b81a9ef4df915051c7272f3d2c8be1015fbb072d962070af14ee9b",
+    "src/cardimech/models.py": "1a85c7381bc4b3450237c5fde30b2b9ac5b92ae94d65808d6b6b22adf31fe48b",
+    "src/cardimech/pv.py": "da7f78ac9e1e6f2abf5ea5e58ea9d005c7ad65118e8fb432e0d20d1485294877",
+    "src/cardimech/reference_backend.py": "4bcbc7d0e9f3f95e4bf5a9ff153cb417df5f28b9c48e2a84aa777fae0b714c46",
+    "src/cardimech/serialization.py": "67813b2637dd28eaf00bd914cfa90a2103457de426ab7135610f7f35eea0950b",
+    "src/cardimech/service.py": "4486b0badba07a25706736271d3148cbc3c2293d619d3558093aaa89e7732159",
+    "src/cardimech/subprocess_backend.py": "6d6abc8400e967409716ff6d95ed95d330574810ae819c27c6ec0d6c4c900f5d",
+    "src/cardimech/validation.py": "38a71c733191f795afd3407fa9f0aee3dc815ced247140678527c765187992e4"
+  }
+}

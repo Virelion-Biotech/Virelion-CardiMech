@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from .models import ArtifactRef
+from .serialization import atomic_write
 
 
 def canonical_json(data: Any) -> str:
@@ -33,17 +34,18 @@ def write_json_artifact(
     payload: Any,
     metadata: dict[str, Any] | None = None,
 ) -> ArtifactRef:
+    if Path(filename).name != filename or filename in {".", "..", ""} or "\\" in filename:
+        raise ValueError("Artifact filename must be a plain local filename")
     directory = Path(output_dir).expanduser().resolve()
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / filename
     encoded = (canonical_json(payload) + "\n").encode("utf-8")
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_bytes(encoded)
-    temporary.replace(path)
-    return ArtifactRef(
+    ref = ArtifactRef(
         artifact_id=artifact_id,
         kind=kind,
         uri=path.as_uri(),
         sha256=sha256_bytes(encoded),
         metadata=metadata or {},
     )
+    atomic_write(path, encoded)
+    return ref

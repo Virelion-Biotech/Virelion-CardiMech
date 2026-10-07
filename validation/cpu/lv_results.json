@@ -1,0 +1,62 @@
+{
+  "checks": {
+    "adaptive_ode_comparison": {
+      "dt_s": [
+        0.001,
+        0.0005,
+        0.00025
+      ],
+      "max_terminal_state_errors": [
+        0.18336553697881186,
+        0.09000669842805564,
+        0.04526116784316514
+      ],
+      "passed": true,
+      "reference_terminal_arterial_pressure_mmHg": 98.43358845433849,
+      "reference_terminal_volume_ml": 167.35475255830326,
+      "tolerance_finest": 0.1
+    },
+    "periodic_convergence": {
+      "metrics": {
+        "cycle_pressure_residual_mmHg": 0.00012029728672757756,
+        "cycle_volume_residual_ml": 7.254553372604278e-05,
+        "max_volume_step_ml": 2.5333726812787916
+      },
+      "passed": true
+    },
+    "synthetic_recovery": {
+      "evaluations": 13,
+      "passed": true,
+      "recovered": 2.099999988810526,
+      "tolerance": 0.0001,
+      "truth_emax_mmHg_per_ml": 2.1
+    }
+  },
+  "passed": true,
+  "scope": "Independent numerical verification and same-model synthetic recovery; no clinical validation",
+  "source_sha256": {
+    "scripts/validate_lv.py": "b80528bd391529bdd80b1a9c325f0688a3ec292f403094469816a8d576179041",
+    "src/cardimech/__init__.py": "c6bdfe6a7db78ad350d1d8ac856343688b9838245a5601e1832d3e2eed9c859e",
+    "src/cardimech/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "src/cardimech/activation.py": "b99d676118a929b38d91d64020d2477a6833a3c224736e956aeeaa811981fcdd",
+    "src/cardimech/api.py": "a2088daed072b9f559e4fb93a040764414ac131b48be9b34d764c6427e816017",
+    "src/cardimech/artifacts.py": "43524b1e2bf4d7f6205a158143a63fdd532e3d3d149b9250c5123ce559f0b5b3",
+    "src/cardimech/backends.py": "1416307508e8a21f244225e5a8162c75239553e7a0bf775920105e5097f7c431",
+    "src/cardimech/calibration.py": "48aa6b25610ca97f833e6c7de18ad3a1d9a90c1ae08d6901581b0780fa3a89c9",
+    "src/cardimech/circulation.py": "6e8e82495815f3f432f6e7b6fe8ae0fa14319f81a714026cf02e8f23672a8972",
+    "src/cardimech/cli.py": "c53c06bc59dd419d6bc8c5c34c288288f30f160761b81a215698f90324af25d2",
+    "src/cardimech/external.py": "6d43feb32c445c72d64e283f83f87d6b773e70d7721d69da2df636ecadc02e68",
+    "src/cardimech/forward.py": "783bd8b6c6fbd94d15d716743365ff51777eaba27715ab49ce98776489c80fe2",
+    "src/cardimech/forward_cli.py": "3e11c004ad1ea2e0df0f2b027eb3caf3a7a55d734fc1c0cf377a3e36121486eb",
+    "src/cardimech/handoff.py": "3a16625b28675679e5e674b915046fb5f361e3b9c7df76e12bd09d05e539f7fc",
+    "src/cardimech/hearttwin_cli.py": "8928487da7e29c2fc77ac745c8dcf3dbf03a6d3223b27ec7214de2bfe05b940d",
+    "src/cardimech/materials.py": "e008c57c76b81a9ef4df915051c7272f3d2c8be1015fbb072d962070af14ee9b",
+    "src/cardimech/models.py": "1a85c7381bc4b3450237c5fde30b2b9ac5b92ae94d65808d6b6b22adf31fe48b",
+    "src/cardimech/pv.py": "da7f78ac9e1e6f2abf5ea5e58ea9d005c7ad65118e8fb432e0d20d1485294877",
+    "src/cardimech/reference_backend.py": "4bcbc7d0e9f3f95e4bf5a9ff153cb417df5f28b9c48e2a84aa777fae0b714c46",
+    "src/cardimech/serialization.py": "67813b2637dd28eaf00bd914cfa90a2103457de426ab7135610f7f35eea0950b",
+    "src/cardimech/service.py": "4486b0badba07a25706736271d3148cbc3c2293d619d3558093aaa89e7732159",
+    "src/cardimech/subprocess_backend.py": "6d6abc8400e967409716ff6d95ed95d330574810ae819c27c6ec0d6c4c900f5d",
+    "src/cardimech/validation.py": "38a71c733191f795afd3407fa9f0aee3dc815ced247140678527c765187992e4"
+  }
+}

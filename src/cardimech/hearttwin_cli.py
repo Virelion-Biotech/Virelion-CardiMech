@@ -7,6 +7,7 @@ from copy import deepcopy
 from typing import Any
 
 from .api import MechanicsAPI
+from .serialization import strict_loads
 
 
 def _payload() -> dict[str, Any]:
@@ -14,7 +15,7 @@ def _payload() -> dict[str, Any]:
         raw = sys.stdin.read()
     else:
         raw = os.environ.get("HEARTTWIN_PAYLOAD", "{}")
-    data = json.loads(raw or "{}")
+    data = strict_loads(raw or "{}")
     if not isinstance(data, dict):
         raise TypeError("HeartTwin payload must contain a JSON object")
     return data

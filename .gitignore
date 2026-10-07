@@ -15,3 +15,5 @@ outputs/
 artifacts/
 checkpoints/
 runs/
+
+cardiinfer_runs/

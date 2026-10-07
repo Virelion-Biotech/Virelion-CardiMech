@@ -50,12 +50,18 @@ class CardiMechService:
         return backend
 
     def simulate(self, request: MechanicsSimulationRequest) -> MechanicsSimulationResult:
+        request = MechanicsSimulationRequest.model_validate(request.model_dump(mode="json"))
         result = self._backend(request.backend).simulate(request)
+        result = MechanicsSimulationResult.model_validate(result.model_dump(mode="json"))
         if result.subject_id != request.subject_id:
             raise ReadinessError("Backend returned mechanics for a different subject")
         if result.backend != request.backend:
             raise ReadinessError("Backend result identifier does not match request backend")
-        if result.qc is not None and not result.qc.passed:
+        if result.qc is None:
+            raise ReadinessError("Backend did not provide mechanics QC")
+        if not result.qc.checks:
+            raise ReadinessError("Backend QC requires at least one explicit check")
+        if not result.qc.passed:
             details = json.dumps(
                 result.qc.model_dump(mode="json"),
                 sort_keys=True,
@@ -63,24 +69,29 @@ class CardiMechService:
             )
             raise ReadinessError(f"Mechanics result failed QC: {details}")
 
-        result.provenance.setdefault("anatomy_artifact_id", request.anatomy_ref.artifact_id)
+        if (
+            self._backend(request.backend).describe().get("spatial")
+            and result.qc.converged is not True
+        ):
+            raise ReadinessError("Spatial backend must demonstrate convergence")
+        expected = {"anatomy_artifact_id": request.anatomy_ref.artifact_id}
         if request.anatomy_ref.sha256 is not None:
-            result.provenance.setdefault("anatomy_sha256", request.anatomy_ref.sha256)
-        bundle_fingerprint = request.anatomy_ref.metadata.get("bundle_fingerprint")
-        if bundle_fingerprint is not None:
-            result.provenance.setdefault(
-                "anatomy_bundle_fingerprint", str(bundle_fingerprint)
-            )
+            expected["anatomy_sha256"] = request.anatomy_ref.sha256
+        fingerprint = request.anatomy_ref.metadata.get("bundle_fingerprint")
+        if fingerprint is not None:
+            expected["anatomy_bundle_fingerprint"] = str(fingerprint)
         if request.activation_ref is not None:
-            result.provenance.setdefault(
-                "activation_artifact_id", request.activation_ref.artifact_id
-            )
+            expected["activation_artifact_id"] = request.activation_ref.artifact_id
             if request.activation_ref.sha256 is not None:
-                result.provenance.setdefault(
-                    "activation_sha256", request.activation_ref.sha256
-                )
+                expected["activation_sha256"] = request.activation_ref.sha256
+        for key, value in expected.items():
+            if key in result.provenance and result.provenance[key] != value:
+                raise ReadinessError(f"Backend provenance mismatch: {key}")
+            result.provenance[key] = value
         return result
 
-    def prepare_calibration(self, request: MechanicsCalibrationRequest) -> MechanicsCalibrationBundle:
+    def prepare_calibration(
+        self, request: MechanicsCalibrationRequest
+    ) -> MechanicsCalibrationBundle:
         self._backend(request.backend)
         return prepare_calibration(request)

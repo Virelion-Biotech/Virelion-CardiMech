@@ -1,0 +1,1 @@
+{"model":"neo_hookean","F":[[1,0.1,0],[0,1,0],[0,0,1]],"parameters":{"mu":3.0,"kappa":100.0}}

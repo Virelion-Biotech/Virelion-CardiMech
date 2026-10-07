@@ -5,6 +5,7 @@ import os
 import sys
 
 from .api import MechanicsAPI
+from .serialization import strict_loads
 
 
 def main() -> int:
@@ -13,7 +14,7 @@ def main() -> int:
         print("HEARTTWIN_PAYLOAD is required", file=sys.stderr)
         return 2
     try:
-        payload = json.loads(raw)
+        payload = strict_loads(raw)
         if not isinstance(payload, dict):
             raise TypeError("HEARTTWIN_PAYLOAD must contain a JSON object")
         result = MechanicsAPI().simulate(payload)

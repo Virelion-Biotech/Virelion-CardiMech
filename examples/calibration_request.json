@@ -1,24 +1,48 @@
 {
-  "subject_id": "SYNTH-001",
   "anatomy_ref": {
     "artifact_id": "synthetic-lv",
     "kind": "reference_geometry",
     "uri": "memory://synthetic-lv"
   },
+  "backend": "numpy-lumped-v1",
   "observations": [
     {
-      "observation_id": "cmr-edv",
+      "artifact": {
+        "artifact_id": "edv",
+        "kind": "scalar",
+        "uri": "memory://synthetic-reference-edv"
+      },
       "kind": "end_diastolic_volume",
-      "artifact": {"artifact_id": "edv", "kind": "scalar", "uri": "file:///data/edv.json"},
-      "unit": "mL",
-      "uncertainty": {"scale": 5.0}
+      "metadata": {
+        "observed": 178.26277900075996,
+        "source": "same-model synthetic observation; not measured patient data"
+      },
+      "observation_id": "synthetic-edv",
+      "uncertainty": {
+        "scale": 5.0
+      },
+      "unit": "mL"
     }
   ],
-  "backend": "numpy-lumped-v1",
   "parameter_bounds": {
-    "passive.a_mmHg": [0.01, 0.5],
-    "passive.b": [0.01, 0.15],
-    "active.emax_mmHg_per_ml": [0.5, 5.0]
+    "active.emax_mmHg_per_ml": [
+      0.5,
+      5.0
+    ],
+    "passive.a_mmHg": [
+      0.01,
+      0.5
+    ],
+    "passive.b": [
+      0.01,
+      0.15
+    ]
   },
-  "settings": {"discrepancy": "student_t"}
+  "settings": {
+    "cycles": 5,
+    "discrepancy": "student_t",
+    "dt_s": 0.001,
+    "seed": 42
+  },
+  "subject_id": "SYNTH-001"
 }

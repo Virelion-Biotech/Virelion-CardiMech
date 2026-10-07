@@ -49,11 +49,12 @@ def run_reference_validation() -> dict[str, object]:
             active={"emax_mmHg_per_ml": 2.1},
             source="fixed",
         ),
-        settings={"cycles": 4, "dt_s": 0.002, "inline_series": False},
+        settings={"cycles": 4, "dt_s": 0.001, "inline_series": False},
     )
     backend = ReferenceLumpedBackend()
     a = backend.simulate(request)
     b = backend.simulate(request)
+    checks["reference_qc_passed"] = bool(a.qc and a.qc.passed)
     checks["reference_deterministic"] = a.scalar_outputs == b.scalar_outputs
     checks["reference_finite"] = all(math.isfinite(value) for value in a.scalar_outputs.values())
     metrics.update({f"reference_{key}": value for key, value in a.scalar_outputs.items()})

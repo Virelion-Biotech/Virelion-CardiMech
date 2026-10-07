@@ -1,18 +1,29 @@
 from __future__ import annotations
 
+import json
 import math
 import string
+from itertools import pairwise
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
-class ArtifactRef(BaseModel):
+class ContractModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+
+    @model_validator(mode="after")
+    def portable_json(self):
+        json.dumps(self.model_dump(mode="json"), allow_nan=False)
+        return self
+
+
+class ArtifactRef(ContractModel):
     model_config = ConfigDict(extra="forbid")
 
-    artifact_id: str
-    kind: str
-    uri: str
+    artifact_id: str = Field(min_length=1)
+    kind: str = Field(min_length=1)
+    uri: str = Field(min_length=1)
     sha256: str | None = Field(default=None, min_length=64, max_length=64)
     coordinate_frame: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -28,7 +39,7 @@ class ArtifactRef(BaseModel):
         return lowered
 
 
-class MechanicsObservation(BaseModel):
+class MechanicsObservation(ContractModel):
     model_config = ConfigDict(extra="forbid")
 
     observation_id: str
@@ -57,11 +68,13 @@ class MechanicsObservation(BaseModel):
         for name, value in self.uncertainty.items():
             numeric = float(value)
             if not math.isfinite(numeric) or numeric < 0.0:
-                raise ValueError(f"Observation uncertainty {name!r} must be finite and non-negative")
+                raise ValueError(
+                    f"Observation uncertainty {name!r} must be finite and non-negative"
+                )
         return self
 
 
-class MechanicalParameterSet(BaseModel):
+class MechanicalParameterSet(ContractModel):
     model_config = ConfigDict(extra="forbid")
 
     passive: dict[str, float] = Field(default_factory=dict)
@@ -80,7 +93,7 @@ class MechanicalParameterSet(BaseModel):
         return self
 
 
-class BoundaryCondition(BaseModel):
+class BoundaryCondition(ContractModel):
     model_config = ConfigDict(extra="forbid")
 
     boundary_id: str
@@ -113,7 +126,7 @@ class BoundaryCondition(BaseModel):
         return self
 
 
-class CirculationCoupling(BaseModel):
+class CirculationCoupling(ContractModel):
     model_config = ConfigDict(extra="forbid")
 
     enabled: bool = False
@@ -131,7 +144,7 @@ class CirculationCoupling(BaseModel):
         return self
 
 
-class MechanicsQC(BaseModel):
+class MechanicsQC(ContractModel):
     model_config = ConfigDict(extra="forbid")
 
     passed: bool
@@ -143,16 +156,12 @@ class MechanicsQC(BaseModel):
 
     @model_validator(mode="after")
     def consistent_status(self) -> MechanicsQC:
-        if self.passed and (
-            self.errors
-            or self.converged is False
-            or any(not value for value in self.checks.values())
-        ):
+        if self.passed and (self.errors or any(not value for value in self.checks.values())):
             raise ValueError("passed=True is inconsistent with failed mechanics QC")
         return self
 
 
-class MechanicsSimulationRequest(BaseModel):
+class MechanicsSimulationRequest(ContractModel):
     model_config = ConfigDict(extra="forbid")
 
     subject_id: str
@@ -176,7 +185,7 @@ class MechanicsSimulationRequest(BaseModel):
         return self
 
 
-class MechanicsSimulationResult(BaseModel):
+class MechanicsSimulationResult(ContractModel):
     model_config = ConfigDict(extra="forbid")
 
     contract_version: str = "2.0"
@@ -196,8 +205,22 @@ class MechanicsSimulationResult(BaseModel):
     warnings: list[str] = Field(default_factory=list)
     provenance: dict[str, Any] = Field(default_factory=dict)
 
+    @model_validator(mode="after")
+    def result_integrity(self):
+        ids = [item.artifact_id for item in self.outputs]
+        if len(ids) != len(set(ids)):
+            raise ValueError("Result output artifact IDs must be unique")
+        lengths = {len(values) for values in self.series.values()}
+        if len(lengths) > 1 or (self.series and (not lengths or 0 in lengths)):
+            raise ValueError("Result series must be nonempty and aligned")
+        if "time_s" in self.series:
+            times = self.series["time_s"]
+            if any(a >= b for a, b in pairwise(times)):
+                raise ValueError("Result time_s must be strictly increasing")
+        return self
 
-class MechanicsCalibrationRequest(BaseModel):
+
+class MechanicsCalibrationRequest(ContractModel):
     model_config = ConfigDict(extra="forbid")
 
     subject_id: str
@@ -218,6 +241,8 @@ class MechanicsCalibrationRequest(BaseModel):
         ids = [item.observation_id for item in self.observations]
         if len(ids) != len(set(ids)):
             raise ValueError("Mechanics observation IDs must be unique")
+        if not self.parameter_bounds:
+            raise ValueError("At least one parameter bound is required")
         for name, bounds in self.parameter_bounds.items():
             lo, hi = bounds
             if not (math.isfinite(float(lo)) and math.isfinite(float(hi)) and lo < hi):
@@ -225,7 +250,7 @@ class MechanicsCalibrationRequest(BaseModel):
         return self
 
 
-class MechanicsCalibrationBundle(BaseModel):
+class MechanicsCalibrationBundle(ContractModel):
     model_config = ConfigDict(extra="forbid")
 
     contract_version: str = "1.0"
