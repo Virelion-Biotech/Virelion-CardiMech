@@ -104,3 +104,10 @@ reports, source/wheel builds and installed-wheel reference validation pass.
 The real CardiInfer test includes a command evaluation and an ABC run; sampler
 artifacts are isolated in a temporary test directory. Hosted CI is checked after
 publication and its run is linked in the release verification note.
+
+## Publication verification
+
+Release implementation commit: `f0390418486ca520df356d85f1e891f5524ef920`.
+The final documentation commit triggers all six hosted jobs: four Python versions,
+installed-wheel validation and pinned CardiInfer integration. Current runs:
+https://github.com/Virelion-Biotech/Virelion-CardiMech/actions/workflows/ci.yml .
