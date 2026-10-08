@@ -4,6 +4,7 @@ import json
 
 from .backends import BackendUnavailable, MechanicsBackend, discover_plugin_backends
 from .calibration import prepare_calibration
+from .fem_backend import TetrahedralBackend
 from .models import (
     MechanicsCalibrationBundle,
     MechanicsCalibrationRequest,
@@ -21,6 +22,7 @@ class CardiMechService:
     def __init__(self, *, load_plugins: bool = True) -> None:
         self._backends: dict[str, MechanicsBackend] = {}
         self.register_backend(ReferenceLumpedBackend())
+        self.register_backend(TetrahedralBackend())
         if load_plugins:
             for backend in discover_plugin_backends():
                 self.register_backend(backend)
@@ -93,5 +95,9 @@ class CardiMechService:
     def prepare_calibration(
         self, request: MechanicsCalibrationRequest
     ) -> MechanicsCalibrationBundle:
+        if request.backend == "scipy-tetra-v1":
+            raise ValueError(
+                "Spatial field calibration is not implemented; use measured-field adapter and independent validation"
+            )
         self._backend(request.backend)
         return prepare_calibration(request)

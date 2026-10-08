@@ -38,3 +38,11 @@ Plugins should keep heavyweight dependencies inside their own package/environmen
 - `simcardems2`: useful architecture for staggered EP-mechanics coupling.
 
 No external solver is silently vendored by CardiMech. Deployment must review its license, binary/runtime requirements, numerical configuration, and validation evidence.
+
+## Built-in spatial CPU backend: `scipy-tetra-v1` (0.4.0)
+
+Finite-strain P1 tetrahedral static mechanics with compressible Neo-Hookean or
+Guccione material, prescribed fibre tension, displacement constraints and closed
+cavity follower pressure. Install `[spatial]`; see [contract, numerical evidence
+and limitations](SPATIAL_MECHANICS.md). This backend is numerically exercised on
+synthetic meshes and is not patient validated.

@@ -11,6 +11,7 @@ It combines stable mechanics contracts with a dependency-light reference model a
 
 - typed anatomy, observation, material, loading, circulation, QC, simulation, and calibration contracts;
 - a deterministic NumPy LV pressure-volume + Windkessel reference backend (`numpy-lumped-v1`);
+- a CPU finite-strain tetrahedral spatial backend (`scipy-tetra-v1`) with follower pressure, prescribed displacements and element stress/strain fields;
 - passive/active constitutive utilities for Neo-Hookean, Mooney-Rivlin, Guccione, and Holzapfel-Ogden style models;
 - periodic active-tension activation utilities;
 - pressure-volume metrics, stroke work, spherical strain and Laplace-stress reference summaries;
@@ -192,4 +193,25 @@ evaluations remove shared `output_dir` to prevent concurrent calibration artifac
 from overwriting one another.
 
 See [the audit and scientific evidence](docs/CPU_AUDIT.md). No GPU is needed for
-these verified workflows; spatial FE solving and empirical validation remain open.
+these verified workflows; the new spatial FE backend is documented below; empirical validation remains open.
+
+
+## Spatial mechanics (0.4.0)
+
+Install `python -m pip install -e '.[spatial]'`. The built-in `scipy-tetra-v1`
+backend solves 3D tetrahedral finite-strain equilibrium on CPU, with compressible
+Neo-Hookean or Guccione material, prescribed fibre tension, follower cavity
+pressure and displacement constraints. It exports displacement, Green strain,
+Cauchy stress, deformation gradients and Newton convergence history.
+
+Run `cardimech simulate examples/spatial_request.json` from the repository root
+for a synthetic shell example. Run `python scripts/validate_spatial.py` after installing `[validation]` for the
+independent analytic thick-shell refinement check. Relative inner displacement
+error decreases from 49.2% to 20.1% to 6.22% on the committed synthetic meshes.
+The tests also verify constitutive derivatives, objectivity, assembled tangents,
+follower-pressure volume gradients, affine patch equilibrium and active mechanics.
+
+See [the spatial contract and limits](docs/SPATIAL_MECHANICS.md). This is a static
+research solver. Patient myocardial validation, spatial field calibration,
+time-dependent EP coupling and coupled spatial circulation remain unfinished.
+The lumped reference backend remains available for its existing PV workflows.

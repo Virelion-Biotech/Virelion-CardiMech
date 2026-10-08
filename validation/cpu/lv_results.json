@@ -36,7 +36,7 @@
   "scope": "Independent numerical verification and same-model synthetic recovery; no clinical validation",
   "source_sha256": {
     "scripts/validate_lv.py": "b80528bd391529bdd80b1a9c325f0688a3ec292f403094469816a8d576179041",
-    "src/cardimech/__init__.py": "c6bdfe6a7db78ad350d1d8ac856343688b9838245a5601e1832d3e2eed9c859e",
+    "src/cardimech/__init__.py": "eca016f8ee022acfadd8eca40f0e342bdc8c554d23b0b69c7a8e1397ca02cc00",
     "src/cardimech/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
     "src/cardimech/activation.py": "b99d676118a929b38d91d64020d2477a6833a3c224736e956aeeaa811981fcdd",
     "src/cardimech/api.py": "a2088daed072b9f559e4fb93a040764414ac131b48be9b34d764c6427e816017",
@@ -46,6 +46,10 @@
     "src/cardimech/circulation.py": "6e8e82495815f3f432f6e7b6fe8ae0fa14319f81a714026cf02e8f23672a8972",
     "src/cardimech/cli.py": "c53c06bc59dd419d6bc8c5c34c288288f30f160761b81a215698f90324af25d2",
     "src/cardimech/external.py": "6d43feb32c445c72d64e283f83f87d6b773e70d7721d69da2df636ecadc02e68",
+    "src/cardimech/fem_backend.py": "8f8a145125fe620d52c79e900068dd91431a937b14326030bc2eee2b0d4fbb30",
+    "src/cardimech/fem_examples.py": "f23b036f4d0fffcf646f88a27bf765a09ba333d3a99f63646fc42935e62de512",
+    "src/cardimech/fem_materials.py": "c6078c789cea13165b48c967b78a09f7ef3b8a6ec6b49b72cc0eed40cffdfa81",
+    "src/cardimech/fem_mesh.py": "c4f3e723479683ee161c4403e170bea2c8875363e98d161e6860ffb6c8bbadb2",
     "src/cardimech/forward.py": "783bd8b6c6fbd94d15d716743365ff51777eaba27715ab49ce98776489c80fe2",
     "src/cardimech/forward_cli.py": "3e11c004ad1ea2e0df0f2b027eb3caf3a7a55d734fc1c0cf377a3e36121486eb",
     "src/cardimech/handoff.py": "3a16625b28675679e5e674b915046fb5f361e3b9c7df76e12bd09d05e539f7fc",
@@ -55,7 +59,7 @@
     "src/cardimech/pv.py": "da7f78ac9e1e6f2abf5ea5e58ea9d005c7ad65118e8fb432e0d20d1485294877",
     "src/cardimech/reference_backend.py": "4bcbc7d0e9f3f95e4bf5a9ff153cb417df5f28b9c48e2a84aa777fae0b714c46",
     "src/cardimech/serialization.py": "67813b2637dd28eaf00bd914cfa90a2103457de426ab7135610f7f35eea0950b",
-    "src/cardimech/service.py": "4486b0badba07a25706736271d3148cbc3c2293d619d3558093aaa89e7732159",
+    "src/cardimech/service.py": "c57846f048d15d2038c747bdbbdff57ddfdac1f8e525d4adcb02d02a1e491331",
     "src/cardimech/subprocess_backend.py": "6d6abc8400e967409716ff6d95ed95d330574810ae819c27c6ec0d6c4c900f5d",
     "src/cardimech/validation.py": "38a71c733191f795afd3407fa9f0aee3dc815ced247140678527c765187992e4"
   }

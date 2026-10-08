@@ -34,6 +34,8 @@ jobs:
       - run: cardimech prepare-calibration examples/calibration_request.json --output /tmp/calibration.json
       - run: python scripts/validate_cpu.py
       - run: python scripts/validate_lv.py
+      - run: python scripts/validate_spatial.py
+      - run: cardimech simulate examples/spatial_request.json --output /tmp/spatial-result.json
       - uses: actions/upload-artifact@v4
         with:
           name: cpu-verification-${{ matrix.python-version }}
