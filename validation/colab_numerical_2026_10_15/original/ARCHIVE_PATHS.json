@@ -1,0 +1,16 @@
+{
+  "ATTEMPT_STATUS.json": "ATTEMPT_STATUS.json",
+  "LAST_SESSION.json": "LAST_SESSION.json",
+  "RETAINED_ON_DRIVE.json": "RETAINED_ON_DRIVE.json",
+  "RUN_STATUS.json": "RUN_STATUS.json",
+  "environment-setup.log": "environment-setup.log",
+  "environment.txt": "environment.txt",
+  "launcher/runtime.py": "launcher/runtime.py.txt",
+  "launcher/training.py": "launcher/training.py.txt",
+  "launcher/worker.py": "launcher/worker.py.txt",
+  "protocol.json": "protocol.json",
+  "results/CardiMech-spatial.json": "results/CardiMech-spatial.json",
+  "source_snapshots.json": "source_snapshots.json",
+  "worker-session.log": "worker-session.log",
+  "ARTIFACT_HASHES.json": "ARTIFACT_HASHES.json"
+}

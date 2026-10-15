@@ -1,0 +1,38 @@
+{
+  "original_archive_sha256": "1a5d3054581104bbaec78a3d4d1b1df0f80c837a6a467c5f08ac89098e47ec04",
+  "source_commit": "69c02886a24f9faa989b4c3c56c0ea26eea05d69",
+  "status": "NUMERICAL_ONLY",
+  "runtime_seconds": 2.272431679999954,
+  "archive_members": 14,
+  "artifact_hashes_verified": 13,
+  "canonical_protocol_and_launcher_hashes_verified": true,
+  "pinned_snapshot_files_verified": 64,
+  "current_implementation_files_match_run": 29,
+  "empirical_validation": false,
+  "clinical_validation": false,
+  "reproduced_reports": [
+    {
+      "original": "CardiMech-spatial.json",
+      "reproduction": "reproduction.json"
+    }
+  ],
+  "comparison_relative_tolerance": 1e-07,
+  "comparison_absolute_tolerance": 1e-10,
+  "comparison_excludes": [
+    "python",
+    "numpy",
+    "scipy",
+    "environment"
+  ],
+  "algorithm_changes": false,
+  "decision": "No demonstrated algorithmic defect in this numerical export; retain original algorithms and report remaining scientific limits.",
+  "local_tests_passed": 89,
+  "local_optional_tests_skipped": 1,
+  "statement_coverage_percent": 87.55,
+  "scientific_limits": [
+    "- A small residual establishes equilibrium of the discrete equations; it does not remove the 6.22% remaining discretization/model-limit error.",
+    "- The report acceptance gate is monotone reduction plus finest relative error below 15%. Passing this gate does not mean high accuracy at every mesh resolution.",
+    "- This is a compressible, small-strain synthetic sphere comparison with slip constraints. It is not near-incompressible myocardial qualification, the full Land benchmark, or a patient deformation/pressure comparison.",
+    "- Finer independently checked meshes, near-incompressibility/locking tests, finite-strain material benchmarks and measured strain/pressure data are needed for broader mechanics claims. No constitutive parameters or tolerances were tuned against this uploaded run."
+  ]
+}

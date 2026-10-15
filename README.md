@@ -11,15 +11,16 @@ It combines stable mechanics contracts with a dependency-light reference model a
 <!-- VALIDATION_PRODUCT_STATUS:BEGIN -->
 ## Validation and product completion status
 
-**Reviewed 2026-10-14; implementation base `69c02886a24f`.** **Status: Lumped and restricted spatial numerical verification; myocardial validation incomplete.** This is an evidence-backed scope assessment, not a percentage-complete estimate or a declaration that the product is finished.
+**Reviewed 2026-10-15; implementation base `69c02886a24f`.** **Status: Lumped and restricted spatial numerical verification; myocardial validation incomplete.** This is an evidence-backed scope assessment, not a percentage-complete estimate or a declaration that the product is finished.
 
 | Area | Current evidence / remaining gate |
 |---|---|
-| Software / operational checks | Automated test sources and CI definitions are present; this documentation audit does not report a new algorithm/data-validation run. |
+| Software / operational checks | Automated test sources and CI definitions are present; the uploaded numerical run completed; all 13 artifact hashes match, and the numerical harness reproduced locally. 89 local tests passed (one optional integration module skipped). |
 | Scientific or domain evidence | The current spatial tetrahedral backend is implemented. Independent synthetic shell refinement reaches 6.22% inner-displacement error; this is not a patient result or a pass of the full cardiac mechanics benchmark. |
 | Remaining for the declared product scope | Address near-incompressible locking/mixed formulation and broader benchmark convergence; implement intended dynamic EP/spatial circulation coupling and inverse-field calibration; validate registered myocardial displacement/strain/pressure on held-out measured data; qualify scar/contact only if those capabilities enter scope. |
 
 Evidence and limits: [repository report](docs/SPATIAL_MECHANICS.md). The [organization status index](https://github.com/Virelion-Biotech/Virelion-HeartTwin/blob/main/docs/STACK_VALIDATION_STATUS.md) separates software, numerical, data-readiness and empirical qualification. Code/schema execution or a completed download is not a substitute for endpoint-specific validation.
+Latest evidence: [2026-10-15 Colab review and numerical limits](validation/COLAB_NUMERICAL_REVIEW_2026-10-15.md).
 <!-- VALIDATION_PRODUCT_STATUS:END -->
 
 ## What is built

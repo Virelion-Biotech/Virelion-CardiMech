@@ -1,0 +1,12 @@
+{
+  "error": null,
+  "input_receipts": {},
+  "protocol_sha256": "7b8f04412ab9f1e2ac84c28fe2609153efb059f324b7489ca45e261b20c43eb1",
+  "scientific_validation": "NOT_ESTABLISHED_BY_EXECUTION",
+  "scope": "Independent thick-shell small-strain numerical verification on three mesh refinements.",
+  "seconds_this_session": 2.272431679999954,
+  "source_pins": {
+    "Virelion-CardiMech": "69c02886a24f9faa989b4c3c56c0ea26eea05d69"
+  },
+  "status": "NUMERICAL_ONLY"
+}
