@@ -1,0 +1,53 @@
+{
+  "benchmark": "linear elastic thick sphere, small pressure limit of compressible neo-Hookean FEM",
+  "environment": {
+    "numpy": "2.2.6",
+    "python": "3.13.16",
+    "scipy": "1.15.3"
+  },
+  "limits": "Synthetic closed shell; analytic linear limit, not patient anatomy or Land benchmark.",
+  "parameters": {
+    "inner_m": 0.02,
+    "lambda_Pa": 1000.0,
+    "mu_Pa": 1000.0,
+    "outer_m": 0.03,
+    "pressure_Pa": 0.1
+  },
+  "passed": true,
+  "patient_validated": false,
+  "records": [
+    {
+      "analytic_inner_displacement_m": 8.789473684210528e-07,
+      "elements": 48,
+      "mean_inner_displacement_m": 4.4659219480508925e-07,
+      "nodes": 18,
+      "refinement": 0,
+      "relative_error": 0.49190109573073687,
+      "residual_N": 4.775023607893385e-16
+    },
+    {
+      "analytic_inner_displacement_m": 8.789473684210528e-07,
+      "elements": 288,
+      "mean_inner_displacement_m": 7.020809554108402e-07,
+      "nodes": 72,
+      "refinement": 1,
+      "relative_error": 0.20122526031102034,
+      "residual_N": 7.088193041559647e-16
+    },
+    {
+      "analytic_inner_displacement_m": 8.789473684210528e-07,
+      "elements": 1536,
+      "mean_inner_displacement_m": 8.243147836919625e-07,
+      "nodes": 330,
+      "refinement": 2,
+      "relative_error": 0.062156832925312294,
+      "residual_N": 4.052346022723091e-16
+    }
+  ],
+  "source_sha256": {
+    "fem_backend.py": "8f8a145125fe620d52c79e900068dd91431a937b14326030bc2eee2b0d4fbb30",
+    "fem_examples.py": "f23b036f4d0fffcf646f88a27bf765a09ba333d3a99f63646fc42935e62de512",
+    "fem_materials.py": "c6078c789cea13165b48c967b78a09f7ef3b8a6ec6b49b72cc0eed40cffdfa81",
+    "fem_mesh.py": "c4f3e723479683ee161c4403e170bea2c8875363e98d161e6860ffb6c8bbadb2"
+  }
+}
