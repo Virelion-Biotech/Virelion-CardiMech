@@ -10,6 +10,23 @@ from __future__ import annotations
 import numpy as np
 
 
+def linearized_regime(model, parameters):
+    """Small-strain isotropic constants of this exact neo-Hookean energy only."""
+    if model != "neo_hookean":
+        return {
+            "isotropic_poisson_ratio": None,
+            "p1_locking_risk": None,
+            "assessment": "Anisotropic Guccione law has no single isotropic Poisson ratio",
+        }
+    mu, lam = parameters["mu"], parameters["kappa"]
+    nu = 0.5 / (1 + mu / lam)
+    return {
+        "isotropic_poisson_ratio": nu,
+        "p1_locking_risk": nu >= 0.49,
+        "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound",
+    }
+
+
 def constitutive(F, model, parameters, fiber, sheet, tension=0.0, *, compute_tangent=True):
     F = np.asarray(F, dtype=float)
     if F.ndim != 3 or F.shape[1:] != (3, 3) or not np.isfinite(F).all():

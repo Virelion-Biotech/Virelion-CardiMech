@@ -134,7 +134,10 @@ def test_false_gmres_success_rejected_by_true_residual(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize("model,parameters", MATERIALS)
-def test_nonlinear_matrix_free_matches_direct(tmp_path, monkeypatch, model, parameters):
+@pytest.mark.parametrize("preconditioner", ["jacobi", "block_jacobi"])
+def test_nonlinear_matrix_free_matches_direct(
+    tmp_path, monkeypatch, model, parameters, preconditioner
+):
     from cardimech import fem_backend
 
     req, _, _ = clamped_request(tmp_path)
@@ -146,7 +149,11 @@ def test_nonlinear_matrix_free_matches_direct(tmp_path, monkeypatch, model, para
     service = CardiMechService(load_plugins=False)
     direct = service.simulate(req)
     original = json.loads((tmp_path / "spatial-mechanics.json").read_text())
-    req.settings.update(linear_solver="matrix_free_gmres", linear_relative_tolerance=1e-10)
+    req.settings.update(
+        linear_solver="matrix_free_gmres",
+        linear_relative_tolerance=1e-10,
+        linear_preconditioner=preconditioner,
+    )
     original_assemble = fem_backend.assemble
 
     def require_matrix_free(*args, **kwargs):
@@ -161,6 +168,7 @@ def test_nonlinear_matrix_free_matches_direct(tmp_path, monkeypatch, model, para
     )
     assert iterative.qc.converged and direct.qc.converged and result["linear_history"]
     assert iterative.provenance["linear_solver"] == "matrix_free_gmres"
+    assert iterative.provenance["linear_preconditioner"] == preconditioner
 
 
 @pytest.mark.parametrize(
@@ -168,6 +176,7 @@ def test_nonlinear_matrix_free_matches_direct(tmp_path, monkeypatch, model, para
     [
         {"mesh_profile": "large_experimental"},
         {"linear_solver": "invalid"},
+        {"linear_solver": "matrix_free_gmres", "linear_preconditioner": "invalid"},
         {"linear_solver": "matrix_free_gmres", "linear_restart": 101},
         {"linear_solver": "matrix_free_gmres", "linear_relative_tolerance": 1e-3},
         {"linear_solver": "matrix_free_gmres", "linear_max_iterations": True},
