@@ -23,6 +23,7 @@ def test_anisotropic_regime_is_not_falsely_isotropic():
 def test_nearly_incompressible_run_carries_accuracy_warning(tmp_path):
     req, _, _ = clamped_request(tmp_path)
     req.parameters.passive["kappa"] = 100000
+    req.settings["formulation"] = "displacement_p1"
     result = CardiMechService(load_plugins=False).simulate(req)
     assert result.qc.converged
     assert result.provenance["linearized_material_regime"]["p1_locking_risk"]

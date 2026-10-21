@@ -19,18 +19,27 @@ from cardimech.models import MechanicsSimulationRequest
 from cardimech.service import CardiMechService
 
 
-def qualify(output):
+def qualify(
+    output,
+    formulation="displacement_p1",
+    levels=(1, 2, 3),
+    quadrature=5,
+    lambdas=(1000.0, 100000.0, 10000000.0),
+    pressure=0.1,
+):
     output.mkdir(parents=True, exist_ok=True)
     records = []
-    a, b, pressure, mu = 0.02, 0.03, 0.1, 1000.0
-    for lam in [1000.0, 100000.0, 10000000.0]:
+    a, b, mu = 0.02, 0.03, 1000.0
+    for lam in lambdas:
         B = pressure / (4 * mu * (1 / a**3 - 1 / b**3))
         A = 4 * mu * B / ((3 * lam + 2 * mu) * b**3)
         exact = A * a + B / a**2
-        for level in [1, 2, 3]:
+        for level in levels:
             directory = output / f"lambda-{lam:g}-level-{level}"
             directory.mkdir()
             record = {
+                "formulation": formulation,
+                "quadrature_order": quadrature if formulation == "mixed_mini" else None,
                 "lambda_Pa": lam,
                 "mu_Pa": mu,
                 "pressure_Pa": pressure,
@@ -85,6 +94,12 @@ def qualify(output):
                     settings={
                         "output_dir": str(directory),
                         "load_steps": 1,
+                        "formulation": formulation,
+                        **(
+                            {"mixed_quadrature_order": quadrature}
+                            if formulation == "mixed_mini"
+                            else {}
+                        ),
                         "absolute_tolerance_N": 1e-10,
                     },
                 )
@@ -103,6 +118,9 @@ def qualify(output):
                     equilibrium_passed=result.qc.converged,
                     residual_N=result.scalar_outputs["residual_N"],
                     warnings=result.warnings,
+                    minimum_J=result.scalar_outputs["minimum_J"],
+                    strain_energy_J=result.scalar_outputs["strain_energy_J"],
+                    load_history=data["load_history"],
                 )
             except (ValueError, RuntimeError, np.linalg.LinAlgError) as exc:
                 record.update(
@@ -118,8 +136,17 @@ def qualify(output):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--formulation", choices=["displacement_p1", "mixed_mini"], default="displacement_p1"
+    )
+    parser.add_argument("--levels", type=int, nargs="+", default=[1, 2, 3])
+    parser.add_argument("--quadrature", type=int, default=5)
+    parser.add_argument("--lambdas", type=float, nargs="+", default=[1000.0, 100000.0, 10000000.0])
+    parser.add_argument("--pressure", type=float, default=0.1)
     args = parser.parse_args()
-    records = qualify(args.output)
+    records = qualify(
+        args.output, args.formulation, args.levels, args.quadrature, args.lambdas, args.pressure
+    )
     # Execution failures cause nonzero exit; accuracy failures remain visible data.
     if not all(r["equilibrium_passed"] for r in records):
         raise SystemExit(1)
