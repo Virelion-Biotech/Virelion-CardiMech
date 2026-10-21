@@ -19,43 +19,70 @@ def skew(v):
     return np.array([[0, -z, y], [z, 0, -x], [-y, x, 0]])
 
 
-def pressure_load(nodes, faces, pressure):
+ASSEMBLY_CHUNK_SIZE = 512
+
+
+def pressure_load(nodes, faces, pressure, *, compute_tangent=True):
+    from scipy.sparse import coo_matrix, csr_matrix
+
     force = np.zeros_like(nodes)
-    rows = []
-    cols = []
-    values = []
-    for face in faces:
-        a, b, c = nodes[face]
+    tangent = csr_matrix((nodes.size, nodes.size)) if compute_tangent else None
+    for start in range(0, len(faces), ASSEMBLY_CHUNK_SIZE):
+        selected = faces[start:start + ASSEMBLY_CHUNK_SIZE]
+        x = nodes[selected]
+        a, b, c = x[:, 0], x[:, 1], x[:, 2]
         area = np.cross(b - a, c - a) / 2
-        derivatives = [skew(c - b) / 2, -skew(c - a) / 2, skew(b - a) / 2]
-        for target in face:
-            force[target] += pressure * area / 3
-            for source, derivative in zip(face, derivatives, strict=True):
-                for i in range(3):
-                    for j in range(3):
-                        rows.append(3 * target + i)
-                        cols.append(3 * source + j)
-                        values.append(pressure * derivative[i, j] / 3)
-    from scipy.sparse import coo_matrix
+        np.add.at(force, selected.ravel(), np.repeat(pressure * area / 3, 3, axis=0))
+        if not compute_tangent:
+            continue
+        derivatives = np.asarray([[skew(q - r) / 2, -skew(q - p) / 2, skew(r - p) / 2]
+                                  for p, r, q in x])
+        # Each of the three target vertices receives one third of pressure*area.
+        local = np.broadcast_to(pressure * derivatives[:, None] / 3,
+                                (len(selected), 3, 3, 3, 3)).transpose(0, 1, 3, 2, 4)
+        dofs = (selected[:, :, None] * 3 + np.arange(3)).reshape(len(selected), 9)
+        rows = np.broadcast_to(dofs[:, :, None], (len(selected), 9, 9)).ravel()
+        cols = np.broadcast_to(dofs[:, None, :], (len(selected), 9, 9)).ravel()
+        tangent += coo_matrix((local.reshape(-1), (rows, cols)),
+                             shape=(nodes.size, nodes.size)).tocsr()
+    return force.ravel(), tangent
 
-    return force.ravel(), coo_matrix((values, (rows, cols)), shape=(nodes.size, nodes.size)).tocsr()
 
+def assemble(mesh, u, model, parameters, tension, pressure, *,
+             chunk_size=ASSEMBLY_CHUNK_SIZE, compute_tangent=True):
+    """Bound constitutive and element-tangent temporaries; preserve all output fields."""
+    from scipy.sparse import coo_matrix, csr_matrix
 
-def assemble(mesh, u, model, parameters, tension, pressure):
-    from scipy.sparse import coo_matrix
-
-    F = np.eye(3) + np.einsum("eai,eaj->eij", u[mesh.elements], mesh.gradients)
-    energy, P, C, J = constitutive(F, model, parameters, mesh.fiber, mesh.sheet, tension)
-    local = np.einsum("e,eij,eaj->eai", mesh.volumes, P, mesh.gradients)
+    if type(chunk_size) is not int or not 1 <= chunk_size <= 4096:
+        raise ValueError("Assembly chunk_size must be an integer in 1..4096")
+    ne = len(mesh.elements)
+    F = np.empty((ne, 3, 3))
+    energy, J = np.empty(ne), np.empty(ne)
+    P = np.empty((ne, 3, 3))
     residual = np.zeros_like(u)
-    np.add.at(residual, mesh.elements, local)
-    K = np.einsum("e,eaj,eijkl,ebl->eaibk", mesh.volumes, mesh.gradients, C, mesh.gradients)
-    dofs = (mesh.elements[:, :, None] * 3 + np.arange(3)).reshape(len(mesh.elements), 12)
-    rows = np.broadcast_to(dofs[:, :, None], (len(dofs), 12, 12)).ravel()
-    cols = np.broadcast_to(dofs[:, None, :], (len(dofs), 12, 12)).ravel()
-    tangent = coo_matrix((K.reshape(-1), (rows, cols)), shape=(u.size, u.size)).tocsr()
-    external, load_tangent = pressure_load(mesh.nodes + u, mesh.cavity, pressure)
-    return residual.ravel() - external, tangent - load_tangent, (F, energy, P, J)
+    tangent = csr_matrix((u.size, u.size)) if compute_tangent else None
+    for start in range(0, ne, chunk_size):
+        stop = min(start + chunk_size, ne)
+        selected = mesh.elements[start:stop]
+        gradients, volumes = mesh.gradients[start:stop], mesh.volumes[start:stop]
+        f = np.eye(3) + np.einsum("eai,eaj->eij", u[selected], gradients)
+        e, p, c, j = constitutive(
+            f, model, parameters, mesh.fiber[start:stop], mesh.sheet[start:stop], tension,
+            compute_tangent=compute_tangent)
+        F[start:stop], energy[start:stop], P[start:stop], J[start:stop] = f, e, p, j
+        local = np.einsum("e,eij,eaj->eai", volumes, p, gradients)
+        np.add.at(residual, selected, local)
+        if compute_tangent:
+            local_k = np.einsum("e,eaj,eijkl,ebl->eaibk", volumes, gradients, c, gradients)
+            dofs = (selected[:, :, None] * 3 + np.arange(3)).reshape(len(selected), 12)
+            rows = np.broadcast_to(dofs[:, :, None], (len(selected), 12, 12)).ravel()
+            cols = np.broadcast_to(dofs[:, None, :], (len(selected), 12, 12)).ravel()
+            tangent += coo_matrix((local_k.reshape(-1), (rows, cols)),
+                                  shape=(u.size, u.size)).tocsr()
+    external, load_tangent = pressure_load(
+        mesh.nodes + u, mesh.cavity, pressure, compute_tangent=compute_tangent)
+    return (residual.ravel() - external,
+            tangent - load_tangent if compute_tangent else None, (F, energy, P, J))
 
 
 class TetrahedralBackend:
@@ -248,7 +275,8 @@ class TetrahedralBackend:
                     trial.ravel()[free] += increment * 2.0 ** (-power)
                     try:
                         trial_residual, _, _ = assemble(
-                            mesh, trial, model, parameters, tension * fraction, pressure * fraction
+                            mesh, trial, model, parameters, tension * fraction, pressure * fraction,
+                            compute_tangent=False
                         )
                     except ValueError:
                         continue
@@ -316,5 +344,7 @@ class TetrahedralBackend:
                 "solver": "total-Lagrangian P1 tetrahedral Newton",
                 "material_model": model,
                 "patient_validated": False,
+                "assembly_element_chunk_size": ASSEMBLY_CHUNK_SIZE,
+                "line_search_assembles_tangent": False,
             },
         )

@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 
 
-def constitutive(F, model, parameters, fiber, sheet, tension=0.0):
+def constitutive(F, model, parameters, fiber, sheet, tension=0.0, *, compute_tangent=True):
     F = np.asarray(F, dtype=float)
     if F.ndim != 3 or F.shape[1:] != (3, 3) or not np.isfinite(F).all():
         raise ValueError("Deformation gradients must be finite element-wise 3x3 tensors")
@@ -26,11 +26,13 @@ def constitutive(F, model, parameters, fiber, sheet, tension=0.0):
         coefficient = kappa * logJ - mu
         energy = 0.5 * mu * (np.sum(F * F, axis=(1, 2)) - 3) - mu * logJ + 0.5 * kappa * logJ**2
         P = mu * F + coefficient[:, None, None] * A
-        tangent = (
-            mu * np.einsum("ik,jl->ijkl", eye, eye)[None]
-            + kappa * np.einsum("eij,ekl->eijkl", A, A)
-            - coefficient[:, None, None, None, None] * np.einsum("eil,ekj->eijkl", A, A)
-        )
+        tangent = None
+        if compute_tangent:
+            tangent = (
+                mu * np.einsum("ik,jl->ijkl", eye, eye)[None]
+                + kappa * np.einsum("eij,ekl->eijkl", A, A)
+                - coefficient[:, None, None, None, None] * np.einsum("eil,ekj->eijkl", A, A)
+            )
     elif model == "guccione":
         basis = np.stack((fiber, sheet, np.cross(fiber, sheet)), axis=2)
         E = 0.5 * (F.transpose(0, 2, 1) @ F - eye)
@@ -43,29 +45,32 @@ def constitutive(F, model, parameters, fiber, sheet, tension=0.0):
         S = basis @ (scale[:, None, None] * M) @ basis.transpose(0, 2, 1)
         P = F @ S + (kappa * logJ)[:, None, None] * A
         energy = 0.5 * parameters["c"] * np.expm1(q) + 0.5 * kappa * logJ**2
-        tangent = np.empty((len(F), 3, 3, 3, 3))
-        for k in range(3):
-            for l in range(3):
-                dF = np.zeros((3, 3))
-                dF[k, l] = 1
-                dE = 0.5 * (F.transpose(0, 2, 1) @ dF + dF.T @ F)
-                dLocal = basis.transpose(0, 2, 1) @ dE @ basis
-                dq = 2 * np.sum(M * dLocal, axis=(1, 2))
-                dS = (
-                    basis
-                    @ (scale[:, None, None] * (weights * dLocal + dq[:, None, None] * M))
-                    @ basis.transpose(0, 2, 1)
-                )
-                tangent[:, :, :, k, l] = dF @ S + F @ dS
-        tangent += kappa * np.einsum("eij,ekl->eijkl", A, A) - (kappa * logJ)[
-            :, None, None, None, None
-        ] * np.einsum("eil,ekj->eijkl", A, A)
+        tangent = None
+        if compute_tangent:
+            tangent = np.empty((len(F), 3, 3, 3, 3))
+            for k in range(3):
+                for l in range(3):
+                    dF = np.zeros((3, 3))
+                    dF[k, l] = 1
+                    dE = 0.5 * (F.transpose(0, 2, 1) @ dF + dF.T @ F)
+                    dLocal = basis.transpose(0, 2, 1) @ dE @ basis
+                    dq = 2 * np.sum(M * dLocal, axis=(1, 2))
+                    dS = (
+                        basis
+                        @ (scale[:, None, None] * (weights * dLocal + dq[:, None, None] * M))
+                        @ basis.transpose(0, 2, 1)
+                    )
+                    tangent[:, :, :, k, l] = dF @ S + F @ dS
+            tangent += kappa * np.einsum("eij,ekl->eijkl", A, A) - (kappa * logJ)[
+                :, None, None, None, None
+            ] * np.einsum("eil,ekj->eijkl", A, A)
     else:
         raise ValueError("Spatial FEM supports only neo_hookean or guccione")
     stretched = np.einsum("eij,ej->ei", F, fiber)
     energy += 0.5 * tension * (np.sum(stretched**2, axis=1) - 1)
     P += tension * np.einsum("ei,ej->eij", stretched, fiber)
-    tangent += tension * np.einsum("ik,ej,el->eijkl", eye, fiber, fiber)
-    if not all(np.isfinite(x).all() for x in (energy, P, tangent)):
+    if compute_tangent:
+        tangent += tension * np.einsum("ik,ej,el->eijkl", eye, fiber, fiber)
+    if not all(np.isfinite(x).all() for x in (energy, P, J) + ((tangent,) if compute_tangent else ())):
         raise ValueError("Constitutive energy/stress/tangent exceeds finite numerical range")
     return energy, P, tangent, J
