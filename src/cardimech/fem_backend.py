@@ -137,7 +137,32 @@ class TetrahedralBackend:
             raise ValueError(
                 "Spatial static solver does not consume activation artifacts, observations or circulation"
             )
-        mesh = load_mesh(request.anatomy_ref, request.subject_id)
+        linear_solver = request.settings.get("linear_solver", "direct")
+        profile = request.settings.get("mesh_profile", "standard")
+        if linear_solver not in {"direct", "matrix_free_gmres"}:
+            raise ValueError("linear_solver must be direct or matrix_free_gmres")
+        if profile == "large_experimental" and linear_solver != "matrix_free_gmres":
+            raise ValueError("large_experimental mesh profile requires matrix_free_gmres")
+        linear_rtol = finite_number(
+            request.settings.get("linear_relative_tolerance", 1e-8),
+            "linear_relative_tolerance",
+            strictly_positive=True,
+        )
+        if not 1e-12 <= linear_rtol <= 1e-4:
+            raise ValueError("linear_relative_tolerance must be in 1e-12..1e-4")
+        linear_limit = integer(
+            request.settings.get("linear_max_iterations", 1200), "linear_max_iterations", minimum=1
+        )
+        linear_restart = integer(
+            request.settings.get("linear_restart", 60), "linear_restart", minimum=1
+        )
+        if linear_limit > 5000 or linear_restart > 100:
+            raise ValueError("Linear iteration/restart limits are 5000/100")
+        if linear_solver == "direct" and any(
+            key.startswith("linear_") and key != "linear_solver" for key in request.settings
+        ):
+            raise ValueError("GMRES controls require matrix_free_gmres")
+        mesh = load_mesh(request.anatomy_ref, request.subject_id, profile=profile)
         model = request.parameters.material_model
         keys = {"neo_hookean": {"mu", "kappa"}, "guccione": {"c", "bf", "bt", "bfs", "kappa"}}
         if model not in keys or set(request.parameters.passive) != keys[model]:
@@ -171,6 +196,11 @@ class TetrahedralBackend:
             "max_iterations",
             "absolute_tolerance_N",
             "relative_tolerance",
+            "linear_solver",
+            "mesh_profile",
+            "linear_relative_tolerance",
+            "linear_max_iterations",
+            "linear_restart",
         }
         if set(request.settings) - allowed or "output_dir" not in request.settings:
             raise ValueError(
@@ -263,13 +293,20 @@ class TetrahedralBackend:
         u = np.zeros_like(mesh.nodes)
         history = []
         count = 0
+        linear_history = []
         for step in range(1, steps + 1):
             fraction = step / steps
             u.ravel()[indices] = np.array([fixed[i] for i in indices]) * fraction
             initial = None
             for iteration in range(iterations + 1):
                 residual, K, fields = assemble(
-                    mesh, u, model, parameters, tension * fraction, pressure * fraction
+                    mesh,
+                    u,
+                    model,
+                    parameters,
+                    tension * fraction,
+                    pressure * fraction,
+                    compute_tangent=linear_solver == "direct",
                 )
                 norm = float(np.linalg.norm(residual[free]))
                 if initial is None:
@@ -287,9 +324,29 @@ class TetrahedralBackend:
                     break
                 if iteration == iterations:
                     raise ValueError("Spatial Newton equilibrium did not converge")
-                with warnings.catch_warnings():
-                    warnings.simplefilter("error", MatrixRankWarning)
-                    increment = spsolve(K[free][:, free], -residual[free])
+                if linear_solver == "direct":
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("error", MatrixRankWarning)
+                        increment = spsolve(K[free][:, free], -residual[free])
+                else:
+                    from .fem_krylov import solve_increment
+
+                    increment, linear_report = solve_increment(
+                        mesh,
+                        u,
+                        model,
+                        parameters,
+                        tension * fraction,
+                        pressure * fraction,
+                        free,
+                        -residual[free],
+                        relative_tolerance=linear_rtol,
+                        max_iterations=linear_limit,
+                        restart=linear_restart,
+                    )
+                    linear_history.append(
+                        {"load_step": step, "newton_iteration": iteration, **linear_report}
+                    )
                 if not np.isfinite(increment).all():
                     raise ValueError("Nonfinite Newton increment")
                 accepted = False
@@ -338,6 +395,7 @@ class TetrahedralBackend:
             "element_J": J.tolist(),
             "reaction_force_N": residual.reshape(-1, 3).tolist(),
             "load_history": history,
+            "linear_history": linear_history,
             "anatomy_sha256": mesh.sha256,
             "validation_status": "software_checked",
             "warnings": [notice],
@@ -374,5 +432,11 @@ class TetrahedralBackend:
                 "patient_validated": False,
                 "assembly_element_chunk_size": ASSEMBLY_CHUNK_SIZE,
                 "line_search_assembles_tangent": False,
+                "linear_solver": linear_solver,
+                "mesh_profile": profile,
+                "large_mesh_qualification": "experimental synthetic evidence only"
+                if profile == "large_experimental"
+                else "standard research limits",
+                "linear_iterations": sum(x["iterations"] for x in linear_history),
             },
         )

@@ -36,7 +36,11 @@ def _indices(raw, width, n, name):
     return values.astype(int)
 
 
-def load_mesh(ref, subject):
+def load_mesh(ref, subject, *, profile="standard"):
+    limits = {"standard": (5000, 20000), "large_experimental": (40000, 200000)}
+    if profile not in limits:
+        raise ValueError("Unknown mechanics mesh profile")
+    max_nodes, max_elements = limits[profile]
     if ref.kind != "tetra_mechanics_mesh":
         raise ValueError("Spatial FEM requires tetra_mechanics_mesh anatomy artifact")
     raw = local_path_from_uri(ref.uri).read_bytes()
@@ -64,13 +68,13 @@ def load_mesh(ref, subject):
     if (
         nodes.ndim != 2
         or nodes.shape[1] != 3
-        or not 4 <= len(nodes) <= 5000
+        or not 4 <= len(nodes) <= max_nodes
         or not np.isfinite(nodes).all()
     ):
-        raise ValueError("Mesh requires 4..5000 finite 3D nodes")
+        raise ValueError(f"Mesh requires 4..{max_nodes} finite 3D nodes")
     elements = _indices(payload["tetrahedra"], 4, len(nodes), "tetrahedra")
-    if not 1 <= len(elements) <= 20000:
-        raise ValueError("Mesh requires 1..20000 tetrahedra")
+    if not 1 <= len(elements) <= max_elements:
+        raise ValueError(f"Mesh requires 1..{max_elements} tetrahedra")
     if set(elements.ravel()) != set(range(len(nodes))):
         raise ValueError("Every mesh node must belong to a tetrahedron")
     D = (nodes[elements[:, 1:]] - nodes[elements[:, 0, None]]).transpose(0, 2, 1)
