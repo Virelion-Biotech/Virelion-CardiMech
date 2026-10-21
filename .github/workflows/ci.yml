@@ -25,7 +25,7 @@ jobs:
           cache: pip
       - run: python -m pip install -e '.[dev,validation]'
       - run: ruff check src tests scripts
-      - run: ruff format --check src tests scripts
+      - run: ruff format --diff src tests scripts
       - run: pytest -q --cov=cardimech --cov-fail-under=80
       - run: cardimech doctor
       - run: cardimech validate-reference
