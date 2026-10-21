@@ -8,6 +8,10 @@
 It combines stable mechanics contracts with a dependency-light reference model and explicit plugin boundaries for high-fidelity finite-element and multiphysics solvers.
 
 
+## Numerical qualification update (2026-10-22)
+
+Cached matrix-free actions and optional block Jacobi passed 128 Colab tests and an end-to-end replay, including a 32,784-node synthetic shell. A separate direct-solver benchmark found **80.2% displacement error in the finest tested nearly incompressible P1 case despite equilibrium convergence**. This formulation limitation remains unfixed. [Results, raw evidence and remaining engineering](docs/ROBUSTNESS_AND_LIMITS.md).
+
 <!-- VALIDATION_PRODUCT_STATUS:BEGIN -->
 ## Validation and product completion status
 

@@ -113,10 +113,15 @@ def solve_increment(
     relative_tolerance=1e-8,
     max_iterations=1200,
     restart=60,
+    preconditioner="jacobi",
 ):
     """Fail closed on nonconvergence, checking the unpreconditioned residual."""
     from scipy.sparse.linalg import LinearOperator, gmres
 
+    from .fem_linearization import FrozenTangent, block_inverse, material_blocks
+
+    if preconditioner not in {"jacobi", "block_jacobi"}:
+        raise ValueError("Unknown linear preconditioner")
     size = mesh.nodes.size
     # Freeze the linearization: caller mutation must not alter this linear solve.
     u = np.array(u, dtype=float, copy=True)
@@ -124,17 +129,25 @@ def solve_increment(
     rhs = np.asarray(rhs, dtype=float)
     if rhs.shape != (len(free),) or not np.isfinite(rhs).all() or not len(free):
         raise ValueError("Finite nonempty free-DOF right-hand side required")
-    diagonal = np.abs(tangent_diagonal(mesh, u, model, parameters, tension)[free])
-    floor = max(float(diagonal.max()), 1.0) * 1e-12
-    inverse = 1 / np.maximum(diagonal, floor)
+    frozen = FrozenTangent(mesh, u, model, parameters, tension, pressure)
+    if preconditioner == "block_jacobi":
+        precondition = block_inverse(material_blocks(mesh, u, model, parameters, tension), free)
+    else:
+        diagonal = np.abs(tangent_diagonal(mesh, u, model, parameters, tension)[free])
+        floor = max(float(diagonal.max()), 1.0) * 1e-12
+        inverse = 1 / np.maximum(diagonal, floor)
+
+        def precondition(v):
+            return inverse * v
 
     def action(value):
         full = np.zeros(size)
         full[free] = value
-        return tangent_action(mesh, u, model, parameters, tension, pressure, full)[free]
+        return frozen.apply(full)[free]
 
     operator = LinearOperator((len(free), len(free)), matvec=action, dtype=float)
-    preconditioner = LinearOperator(operator.shape, matvec=lambda v: inverse * v, dtype=float)
+    preconditioner_kind = preconditioner
+    preconditioner = LinearOperator(operator.shape, matvec=precondition, dtype=float)
     iterations = 0
 
     def callback(_):
@@ -162,4 +175,11 @@ def solve_increment(
         raise ValueError(
             f"Matrix-free GMRES failed true residual: info={info}, error={error}, target={target}"
         )
-    return solution, {"iterations": iterations, "residual_N": error, "tolerance_N": target}
+    return solution, {
+        "iterations": iterations,
+        "residual_N": error,
+        "tolerance_N": target,
+        "preconditioner": preconditioner_kind,
+        "operator": "cached_directional",
+        "cached_material_bytes": frozen.cached_material_bytes,
+    }

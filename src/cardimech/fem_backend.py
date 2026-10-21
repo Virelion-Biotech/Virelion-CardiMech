@@ -8,7 +8,7 @@ import warnings
 import numpy as np
 
 from .artifacts import write_json_artifact
-from .fem_materials import constitutive
+from .fem_materials import constitutive, linearized_regime
 from .fem_mesh import cavity_volume, load_mesh
 from .models import MechanicsQC, MechanicsSimulationResult
 from .serialization import finite_number, integer
@@ -139,6 +139,9 @@ class TetrahedralBackend:
             )
         linear_solver = request.settings.get("linear_solver", "direct")
         profile = request.settings.get("mesh_profile", "standard")
+        preconditioner = request.settings.get("linear_preconditioner", "jacobi")
+        if preconditioner not in {"jacobi", "block_jacobi"}:
+            raise ValueError("linear_preconditioner must be jacobi or block_jacobi")
         if linear_solver not in {"direct", "matrix_free_gmres"}:
             raise ValueError("linear_solver must be direct or matrix_free_gmres")
         if profile == "large_experimental" and linear_solver != "matrix_free_gmres":
@@ -201,6 +204,7 @@ class TetrahedralBackend:
             "linear_relative_tolerance",
             "linear_max_iterations",
             "linear_restart",
+            "linear_preconditioner",
         }
         if set(request.settings) - allowed or "output_dir" not in request.settings:
             raise ValueError(
@@ -343,6 +347,7 @@ class TetrahedralBackend:
                         relative_tolerance=linear_rtol,
                         max_iterations=linear_limit,
                         restart=linear_restart,
+                        preconditioner=preconditioner,
                     )
                     linear_history.append(
                         {"load_step": step, "newton_iteration": iteration, **linear_report}
@@ -382,7 +387,13 @@ class TetrahedralBackend:
             "minimum_J": float(J.min()),
             "maximum_displacement_m": float(np.linalg.norm(u, axis=1).max()),
         }
+        regime = linearized_regime(model, parameters)
         notice = "Numerical research backend; no patient myocardial validation. P1 displacement elements can lock near incompressibility."
+        notices = [notice]
+        if regime["p1_locking_risk"]:
+            notices.append(
+                "Nearly incompressible material: displacement P1 stiffness/accuracy requires separate qualification; equilibrium convergence does not establish accuracy."
+            )
         payload = {
             "subject_id": request.subject_id,
             "units": {"coordinates": "m", "displacement": "m", "stress": "Pa"},
@@ -398,7 +409,7 @@ class TetrahedralBackend:
             "linear_history": linear_history,
             "anatomy_sha256": mesh.sha256,
             "validation_status": "software_checked",
-            "warnings": [notice],
+            "warnings": notices,
         }
         artifact = write_json_artifact(
             request.settings["output_dir"],
@@ -414,7 +425,7 @@ class TetrahedralBackend:
             outputs=[artifact],
             scalar_outputs=scalars,
             validation_status="software_checked",
-            warnings=[notice],
+            warnings=notices,
             qc=MechanicsQC(
                 passed=True,
                 converged=True,
@@ -429,10 +440,12 @@ class TetrahedralBackend:
                 "anatomy_sha256": mesh.sha256,
                 "solver": "total-Lagrangian P1 tetrahedral Newton",
                 "material_model": model,
+                "linearized_material_regime": regime,
                 "patient_validated": False,
                 "assembly_element_chunk_size": ASSEMBLY_CHUNK_SIZE,
                 "line_search_assembles_tangent": False,
                 "linear_solver": linear_solver,
+                "linear_preconditioner": preconditioner if linear_solver != "direct" else None,
                 "mesh_profile": profile,
                 "large_mesh_qualification": "experimental synthetic evidence only"
                 if profile == "large_experimental"

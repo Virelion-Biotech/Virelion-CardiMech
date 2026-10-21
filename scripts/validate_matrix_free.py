@@ -21,7 +21,7 @@ from cardimech.models import MechanicsSimulationRequest
 from cardimech.service import CardiMechService
 
 
-def validate(level, layers, output):
+def validate(level, layers, output, preconditioner="jacobi"):
     output.mkdir(parents=True, exist_ok=True)
     start = time.perf_counter()
     payload = shell_mesh(level, layers=layers)
@@ -78,6 +78,7 @@ def validate(level, layers, output):
             "relative_tolerance": 1e-8,
             "linear_relative_tolerance": 1e-8,
             "linear_max_iterations": 1200,
+            "linear_preconditioner": preconditioner,
         },
     )
     print(
@@ -125,5 +126,6 @@ if __name__ == "__main__":
     parser.add_argument("--level", type=int, default=3, choices=[2, 3, 4, 5])
     parser.add_argument("--layers", type=int, default=4, choices=range(3, 9))
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--preconditioner", choices=["jacobi", "block_jacobi"], default="jacobi")
     arguments = parser.parse_args()
-    validate(arguments.level, arguments.layers, arguments.output)
+    validate(arguments.level, arguments.layers, arguments.output, arguments.preconditioner)
