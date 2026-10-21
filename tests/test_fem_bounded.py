@@ -1,13 +1,13 @@
 """Bounded element assembly, residual-only line searches and unchanged mesh guards."""
 import numpy as np
 import pytest
+from test_fem import request
 
 from cardimech import fem_backend
 from cardimech.fem_backend import assemble, pressure_load
 from cardimech.fem_examples import shell_mesh
 from cardimech.fem_materials import constitutive
 from cardimech.fem_mesh import load_mesh
-from test_fem import request
 
 
 @pytest.mark.parametrize("model,parameters", [
