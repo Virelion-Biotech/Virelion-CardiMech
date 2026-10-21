@@ -143,18 +143,24 @@ class TetrahedralBackend:
             raise ValueError("linear_solver must be direct or matrix_free_gmres")
         if profile == "large_experimental" and linear_solver != "matrix_free_gmres":
             raise ValueError("large_experimental mesh profile requires matrix_free_gmres")
-        linear_rtol = finite_number(request.settings.get("linear_relative_tolerance", 1e-8),
-                                    "linear_relative_tolerance", strictly_positive=True)
+        linear_rtol = finite_number(
+            request.settings.get("linear_relative_tolerance", 1e-8),
+            "linear_relative_tolerance",
+            strictly_positive=True,
+        )
         if not 1e-12 <= linear_rtol <= 1e-4:
             raise ValueError("linear_relative_tolerance must be in 1e-12..1e-4")
-        linear_limit = integer(request.settings.get("linear_max_iterations", 1200),
-                               "linear_max_iterations", minimum=1)
-        linear_restart = integer(request.settings.get("linear_restart", 60),
-                                 "linear_restart", minimum=1)
+        linear_limit = integer(
+            request.settings.get("linear_max_iterations", 1200), "linear_max_iterations", minimum=1
+        )
+        linear_restart = integer(
+            request.settings.get("linear_restart", 60), "linear_restart", minimum=1
+        )
         if linear_limit > 5000 or linear_restart > 100:
             raise ValueError("Linear iteration/restart limits are 5000/100")
-        if linear_solver == "direct" and any(key.startswith("linear_") and key != "linear_solver"
-                                             for key in request.settings):
+        if linear_solver == "direct" and any(
+            key.startswith("linear_") and key != "linear_solver" for key in request.settings
+        ):
             raise ValueError("GMRES controls require matrix_free_gmres")
         mesh = load_mesh(request.anatomy_ref, request.subject_id, profile=profile)
         model = request.parameters.material_model
@@ -214,11 +220,6 @@ class TetrahedralBackend:
         rtol = finite_number(
             request.settings.get("relative_tolerance", 1e-8),
             "relative_tolerance",
-            "linear_solver",
-            "mesh_profile",
-            "linear_relative_tolerance",
-            "linear_max_iterations",
-            "linear_restart",
             strictly_positive=True,
         )
         if rtol > 1e-3 or atol > 1e-3:
@@ -299,7 +300,12 @@ class TetrahedralBackend:
             initial = None
             for iteration in range(iterations + 1):
                 residual, K, fields = assemble(
-                    mesh, u, model, parameters, tension * fraction, pressure * fraction,
+                    mesh,
+                    u,
+                    model,
+                    parameters,
+                    tension * fraction,
+                    pressure * fraction,
                     compute_tangent=linear_solver == "direct",
                 )
                 norm = float(np.linalg.norm(residual[free]))
@@ -326,12 +332,21 @@ class TetrahedralBackend:
                     from .fem_krylov import solve_increment
 
                     increment, linear_report = solve_increment(
-                        mesh, u, model, parameters, tension * fraction, pressure * fraction,
-                        free, -residual[free], relative_tolerance=linear_rtol,
-                        max_iterations=linear_limit, restart=linear_restart,
+                        mesh,
+                        u,
+                        model,
+                        parameters,
+                        tension * fraction,
+                        pressure * fraction,
+                        free,
+                        -residual[free],
+                        relative_tolerance=linear_rtol,
+                        max_iterations=linear_limit,
+                        restart=linear_restart,
                     )
-                    linear_history.append({"load_step": step, "newton_iteration": iteration,
-                                           **linear_report})
+                    linear_history.append(
+                        {"load_step": step, "newton_iteration": iteration, **linear_report}
+                    )
                 if not np.isfinite(increment).all():
                     raise ValueError("Nonfinite Newton increment")
                 accepted = False
@@ -419,7 +434,9 @@ class TetrahedralBackend:
                 "line_search_assembles_tangent": False,
                 "linear_solver": linear_solver,
                 "mesh_profile": profile,
-                "large_mesh_qualification": "experimental synthetic evidence only" if profile == "large_experimental" else "standard research limits",
+                "large_mesh_qualification": "experimental synthetic evidence only"
+                if profile == "large_experimental"
+                else "standard research limits",
                 "linear_iterations": sum(x["iterations"] for x in linear_history),
             },
         )

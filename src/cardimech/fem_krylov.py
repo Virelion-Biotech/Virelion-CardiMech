@@ -24,8 +24,7 @@ def stress_action(F, dF, model, parameters, fiber, sheet, tension):
     kappa = parameters["kappa"]
     if model == "neo_hookean":
         mu = parameters["mu"]
-        dP = (mu * dF + (kappa * dlogJ)[:, None, None] * A
-              + (kappa * logJ - mu)[:, None, None] * dA)
+        dP = mu * dF + (kappa * dlogJ)[:, None, None] * A + (kappa * logJ - mu)[:, None, None] * dA
     elif model == "guccione":
         basis = np.stack((fiber, sheet, np.cross(fiber, sheet)), axis=2)
         local = basis.transpose(0, 2, 1) @ (0.5 * (F.transpose(0, 2, 1) @ F - np.eye(3))) @ basis
@@ -37,8 +36,17 @@ def stress_action(F, dF, model, parameters, fiber, sheet, tension):
         dE = 0.5 * (F.transpose(0, 2, 1) @ dF + dF.transpose(0, 2, 1) @ F)
         dLocal = basis.transpose(0, 2, 1) @ dE @ basis
         dq = 2 * np.sum(M * dLocal, axis=(1, 2))
-        dS = basis @ (scale[:, None, None] * (weights * dLocal + dq[:, None, None] * M)) @ basis.transpose(0, 2, 1)
-        dP = dF @ S + F @ dS + (kappa * dlogJ)[:, None, None] * A + (kappa * logJ)[:, None, None] * dA
+        dS = (
+            basis
+            @ (scale[:, None, None] * (weights * dLocal + dq[:, None, None] * M))
+            @ basis.transpose(0, 2, 1)
+        )
+        dP = (
+            dF @ S
+            + F @ dS
+            + (kappa * dlogJ)[:, None, None] * A
+            + (kappa * logJ)[:, None, None] * dA
+        )
     else:
         raise ValueError("Unknown spatial material for tangent action")
     dP += tension * np.einsum("ei,ej->eij", np.einsum("eij,ej->ei", dF, fiber), fiber)
@@ -58,12 +66,14 @@ def tangent_action(mesh, u, model, parameters, tension, pressure, vector):
         cells, gradients = mesh.elements[start:stop], mesh.gradients[start:stop]
         F = np.eye(3) + np.einsum("eai,eaj->eij", u[cells], gradients)
         dF = np.einsum("eai,eaj->eij", vector[cells], gradients)
-        dP = stress_action(F, dF, model, parameters, mesh.fiber[start:stop], mesh.sheet[start:stop], tension)
+        dP = stress_action(
+            F, dF, model, parameters, mesh.fiber[start:stop], mesh.sheet[start:stop], tension
+        )
         local = np.einsum("e,eij,eaj->eai", mesh.volumes[start:stop], dP, gradients)
         np.add.at(result, cells, local)
     x = mesh.nodes + u
     for start in range(0, len(mesh.cavity), CHUNK):
-        faces = mesh.cavity[start:start + CHUNK]
+        faces = mesh.cavity[start : start + CHUNK]
         a, b, c = x[faces].transpose(1, 0, 2)
         va, vb, vc = vector[faces].transpose(1, 0, 2)
         darea = (np.cross(vb - va, c - a) + np.cross(b - a, vc - va)) / 2
@@ -80,7 +90,9 @@ def tangent_diagonal(mesh, u, model, parameters, tension):
         stop = start + CHUNK
         cells, g = mesh.elements[start:stop], mesh.gradients[start:stop]
         F = np.eye(3) + np.einsum("eai,eaj->eij", u[cells], g)
-        _, _, C, _ = constitutive(F, model, parameters, mesh.fiber[start:stop], mesh.sheet[start:stop], tension)
+        _, _, C, _ = constitutive(
+            F, model, parameters, mesh.fiber[start:stop], mesh.sheet[start:stop], tension
+        )
         local = np.einsum("e,eaj,eijil,eal->eai", mesh.volumes[start:stop], g, C, g)
         np.add.at(diagonal, cells, local)
     if not np.isfinite(diagonal).all():
@@ -88,8 +100,20 @@ def tangent_diagonal(mesh, u, model, parameters, tension):
     return diagonal.ravel()
 
 
-def solve_increment(mesh, u, model, parameters, tension, pressure, free, rhs, *,
-                    relative_tolerance=1e-8, max_iterations=1200, restart=60):
+def solve_increment(
+    mesh,
+    u,
+    model,
+    parameters,
+    tension,
+    pressure,
+    free,
+    rhs,
+    *,
+    relative_tolerance=1e-8,
+    max_iterations=1200,
+    restart=60,
+):
     """Fail closed on nonconvergence, checking the unpreconditioned residual."""
     from scipy.sparse.linalg import LinearOperator, gmres
 
@@ -121,12 +145,21 @@ def solve_increment(mesh, u, model, parameters, tension, pressure, free, rhs, *,
 
     # SciPy 1.11 uses tol; later versions use rtol. Both use callback_type here.
     tolerance_key = "rtol" if "rtol" in inspect.signature(gmres).parameters else "tol"
-    solution, info = gmres(operator, rhs, M=preconditioner, restart=min(restart, len(free)),
-                           maxiter=math.ceil(max_iterations / min(restart, len(free))),
-                           atol=1e-14, callback=callback, callback_type="pr_norm",
-                           **{tolerance_key: relative_tolerance})
+    solution, info = gmres(
+        operator,
+        rhs,
+        M=preconditioner,
+        restart=min(restart, len(free)),
+        maxiter=math.ceil(max_iterations / min(restart, len(free))),
+        atol=1e-14,
+        callback=callback,
+        callback_type="pr_norm",
+        **{tolerance_key: relative_tolerance},
+    )
     error = float(np.linalg.norm(action(solution) - rhs))
     target = max(relative_tolerance * float(np.linalg.norm(rhs)), 1e-14)
     if info != 0 or not np.isfinite(solution).all() or error > target * (1 + 1e-6):
-        raise ValueError(f"Matrix-free GMRES failed true residual: info={info}, error={error}, target={target}")
+        raise ValueError(
+            f"Matrix-free GMRES failed true residual: info={info}, error={error}, target={target}"
+        )
     return solution, {"iterations": iterations, "residual_N": error, "tolerance_N": target}
