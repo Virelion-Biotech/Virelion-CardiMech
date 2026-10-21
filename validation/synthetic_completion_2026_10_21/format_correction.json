@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-21",
+  "failed_runs": [
+    39633514655,
+    39659960671
+  ],
+  "diagnosis": "ruff check passed; required Ruff formatter rejected three newly edited source files. Applied exact ruff 0.17.1 --diff output from job 119430086386. Formatter gate remains enforced.",
+  "source_before": "9b3764f287d90c3a2d6422ef3987480be76bdbb7",
+  "ast_equal_all_three": true,
+  "ast_check_environment": "local static Python AST comparison only; no numerical validation executed locally",
+  "prior_numerical_evidence": "100 passed, no skips, Edge Colab at 47753cb5141f07c27b6cc64d64aaab11f7630e48",
+  "browser_blocker": "originating browser context unavailable; formatted source recovered using exact CI formatter diff"
+}

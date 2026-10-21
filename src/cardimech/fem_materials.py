@@ -71,6 +71,8 @@ def constitutive(F, model, parameters, fiber, sheet, tension=0.0, *, compute_tan
     P += tension * np.einsum("ei,ej->eij", stretched, fiber)
     if compute_tangent:
         tangent += tension * np.einsum("ik,ej,el->eijkl", eye, fiber, fiber)
-    if not all(np.isfinite(x).all() for x in (energy, P, J) + ((tangent,) if compute_tangent else ())):
+    if not all(
+        np.isfinite(x).all() for x in (energy, P, J) + ((tangent,) if compute_tangent else ())
+    ):
         raise ValueError("Constitutive energy/stress/tangent exceeds finite numerical range")
     return energy, P, tangent, J

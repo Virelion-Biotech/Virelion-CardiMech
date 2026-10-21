@@ -28,28 +28,40 @@ def pressure_load(nodes, faces, pressure, *, compute_tangent=True):
     force = np.zeros_like(nodes)
     tangent = csr_matrix((nodes.size, nodes.size)) if compute_tangent else None
     for start in range(0, len(faces), ASSEMBLY_CHUNK_SIZE):
-        selected = faces[start:start + ASSEMBLY_CHUNK_SIZE]
+        selected = faces[start : start + ASSEMBLY_CHUNK_SIZE]
         x = nodes[selected]
         a, b, c = x[:, 0], x[:, 1], x[:, 2]
         area = np.cross(b - a, c - a) / 2
         np.add.at(force, selected.ravel(), np.repeat(pressure * area / 3, 3, axis=0))
         if not compute_tangent:
             continue
-        derivatives = np.asarray([[skew(q - r) / 2, -skew(q - p) / 2, skew(r - p) / 2]
-                                  for p, r, q in x])
+        derivatives = np.asarray(
+            [[skew(q - r) / 2, -skew(q - p) / 2, skew(r - p) / 2] for p, r, q in x]
+        )
         # Each of the three target vertices receives one third of pressure*area.
-        local = np.broadcast_to(pressure * derivatives[:, None] / 3,
-                                (len(selected), 3, 3, 3, 3)).transpose(0, 1, 3, 2, 4)
+        local = np.broadcast_to(
+            pressure * derivatives[:, None] / 3, (len(selected), 3, 3, 3, 3)
+        ).transpose(0, 1, 3, 2, 4)
         dofs = (selected[:, :, None] * 3 + np.arange(3)).reshape(len(selected), 9)
         rows = np.broadcast_to(dofs[:, :, None], (len(selected), 9, 9)).ravel()
         cols = np.broadcast_to(dofs[:, None, :], (len(selected), 9, 9)).ravel()
-        tangent += coo_matrix((local.reshape(-1), (rows, cols)),
-                             shape=(nodes.size, nodes.size)).tocsr()
+        tangent += coo_matrix(
+            (local.reshape(-1), (rows, cols)), shape=(nodes.size, nodes.size)
+        ).tocsr()
     return force.ravel(), tangent
 
 
-def assemble(mesh, u, model, parameters, tension, pressure, *,
-             chunk_size=ASSEMBLY_CHUNK_SIZE, compute_tangent=True):
+def assemble(
+    mesh,
+    u,
+    model,
+    parameters,
+    tension,
+    pressure,
+    *,
+    chunk_size=ASSEMBLY_CHUNK_SIZE,
+    compute_tangent=True,
+):
     """Bound constitutive and element-tangent temporaries; preserve all output fields."""
     from scipy.sparse import coo_matrix, csr_matrix
 
@@ -67,8 +79,14 @@ def assemble(mesh, u, model, parameters, tension, pressure, *,
         gradients, volumes = mesh.gradients[start:stop], mesh.volumes[start:stop]
         f = np.eye(3) + np.einsum("eai,eaj->eij", u[selected], gradients)
         e, p, c, j = constitutive(
-            f, model, parameters, mesh.fiber[start:stop], mesh.sheet[start:stop], tension,
-            compute_tangent=compute_tangent)
+            f,
+            model,
+            parameters,
+            mesh.fiber[start:stop],
+            mesh.sheet[start:stop],
+            tension,
+            compute_tangent=compute_tangent,
+        )
         F[start:stop], energy[start:stop], P[start:stop], J[start:stop] = f, e, p, j
         local = np.einsum("e,eij,eaj->eai", volumes, p, gradients)
         np.add.at(residual, selected, local)
@@ -77,12 +95,17 @@ def assemble(mesh, u, model, parameters, tension, pressure, *,
             dofs = (selected[:, :, None] * 3 + np.arange(3)).reshape(len(selected), 12)
             rows = np.broadcast_to(dofs[:, :, None], (len(selected), 12, 12)).ravel()
             cols = np.broadcast_to(dofs[:, None, :], (len(selected), 12, 12)).ravel()
-            tangent += coo_matrix((local_k.reshape(-1), (rows, cols)),
-                                  shape=(u.size, u.size)).tocsr()
+            tangent += coo_matrix(
+                (local_k.reshape(-1), (rows, cols)), shape=(u.size, u.size)
+            ).tocsr()
     external, load_tangent = pressure_load(
-        mesh.nodes + u, mesh.cavity, pressure, compute_tangent=compute_tangent)
-    return (residual.ravel() - external,
-            tangent - load_tangent if compute_tangent else None, (F, energy, P, J))
+        mesh.nodes + u, mesh.cavity, pressure, compute_tangent=compute_tangent
+    )
+    return (
+        residual.ravel() - external,
+        tangent - load_tangent if compute_tangent else None,
+        (F, energy, P, J),
+    )
 
 
 class TetrahedralBackend:
@@ -275,8 +298,13 @@ class TetrahedralBackend:
                     trial.ravel()[free] += increment * 2.0 ** (-power)
                     try:
                         trial_residual, _, _ = assemble(
-                            mesh, trial, model, parameters, tension * fraction, pressure * fraction,
-                            compute_tangent=False
+                            mesh,
+                            trial,
+                            model,
+                            parameters,
+                            tension * fraction,
+                            pressure * fraction,
+                            compute_tangent=False,
                         )
                     except ValueError:
                         continue
