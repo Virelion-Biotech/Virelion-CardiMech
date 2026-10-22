@@ -119,7 +119,7 @@ class TetrahedralBackend:
             "name": self.name,
             "spatial": True,
             "available": self.available(),
-            "description": "CPU finite-strain P1 tetrahedral static equilibrium; numerical research backend",
+            "description": "CPU finite-strain tetrahedral static equilibrium; P1 displacement or mixed MINI research formulation",
             "patient_validated": False,
         }
 
@@ -137,6 +137,10 @@ class TetrahedralBackend:
             raise ValueError(
                 "Spatial static solver does not consume activation artifacts, observations or circulation"
             )
+        formulation = request.settings.get("formulation", "auto")
+        if formulation not in {"auto", "displacement_p1", "mixed_mini"}:
+            raise ValueError("formulation must be auto, displacement_p1 or mixed_mini")
+        mixed = formulation == "mixed_mini"
         linear_solver = request.settings.get("linear_solver", "direct")
         profile = request.settings.get("mesh_profile", "standard")
         preconditioner = request.settings.get("linear_preconditioner", "jacobi")
@@ -165,6 +169,10 @@ class TetrahedralBackend:
             key.startswith("linear_") and key != "linear_solver" for key in request.settings
         ):
             raise ValueError("GMRES controls require matrix_free_gmres")
+        if mixed and (linear_solver != "direct" or profile != "standard"):
+            raise ValueError(
+                "mixed_mini currently requires direct solver and standard mesh profile"
+            )
         mesh = load_mesh(request.anatomy_ref, request.subject_id, profile=profile)
         model = request.parameters.material_model
         keys = {"neo_hookean": {"mu", "kappa"}, "guccione": {"c", "bf", "bt", "bfs", "kappa"}}
@@ -193,6 +201,17 @@ class TetrahedralBackend:
             raise ValueError(
                 "Anisotropic/active mechanics requires explicit element fibre and sheet directions"
             )
+        if formulation == "auto":
+            if linearized_regime(model, parameters)["p1_locking_risk"]:
+                if linear_solver != "direct" or profile != "standard":
+                    raise ValueError(
+                        "Nearly incompressible default requires mixed_mini with direct solver and standard profile; explicit displacement_p1 is available only for legacy research comparisons"
+                    )
+                formulation, mixed = "mixed_mini", True
+            else:
+                formulation, mixed = "displacement_p1", False
+        if not mixed and "mixed_quadrature_order" in request.settings:
+            raise ValueError("mixed_quadrature_order requires mixed_mini")
         allowed = {
             "output_dir",
             "load_steps",
@@ -205,6 +224,8 @@ class TetrahedralBackend:
             "linear_max_iterations",
             "linear_restart",
             "linear_preconditioner",
+            "formulation",
+            "mixed_quadrature_order",
         }
         if set(request.settings) - allowed or "output_dir" not in request.settings:
             raise ValueError(
@@ -298,103 +319,129 @@ class TetrahedralBackend:
         history = []
         count = 0
         linear_history = []
-        for step in range(1, steps + 1):
-            fraction = step / steps
-            u.ravel()[indices] = np.array([fixed[i] for i in indices]) * fraction
-            initial = None
-            for iteration in range(iterations + 1):
-                residual, K, fields = assemble(
-                    mesh,
-                    u,
-                    model,
-                    parameters,
-                    tension * fraction,
-                    pressure * fraction,
-                    compute_tangent=linear_solver == "direct",
-                )
-                norm = float(np.linalg.norm(residual[free]))
-                if initial is None:
-                    initial = norm
-                tolerance = atol + rtol * initial
-                if norm <= tolerance:
-                    history.append(
-                        {
-                            "load_fraction": fraction,
-                            "iterations": iteration,
-                            "residual_N": norm,
-                            "tolerance_N": tolerance,
-                        }
-                    )
-                    break
-                if iteration == iterations:
-                    raise ValueError("Spatial Newton equilibrium did not converge")
-                if linear_solver == "direct":
-                    with warnings.catch_warnings():
-                        warnings.simplefilter("error", MatrixRankWarning)
-                        increment = spsolve(K[free][:, free], -residual[free])
-                else:
-                    from .fem_krylov import solve_increment
+        mixed_extra = {}
+        if mixed:
+            from .fem_mixed import solve_mini
 
-                    increment, linear_report = solve_increment(
+            u, residual, fields, history, count, mixed_extra = solve_mini(
+                mesh,
+                model,
+                parameters,
+                tension,
+                pressure,
+                indices,
+                fixed,
+                steps=steps,
+                iterations=iterations,
+                atol=atol,
+                rtol=rtol,
+                order=request.settings.get("mixed_quadrature_order", 5),
+            )
+            norm = history[-1]["residual_N"]
+            tolerance = history[-1]["tolerance_N"]
+        else:
+            for step in range(1, steps + 1):
+                fraction = step / steps
+                u.ravel()[indices] = np.array([fixed[i] for i in indices]) * fraction
+                initial = None
+                for iteration in range(iterations + 1):
+                    residual, K, fields = assemble(
                         mesh,
                         u,
                         model,
                         parameters,
                         tension * fraction,
                         pressure * fraction,
-                        free,
-                        -residual[free],
-                        relative_tolerance=linear_rtol,
-                        max_iterations=linear_limit,
-                        restart=linear_restart,
-                        preconditioner=preconditioner,
+                        compute_tangent=linear_solver == "direct",
                     )
-                    linear_history.append(
-                        {"load_step": step, "newton_iteration": iteration, **linear_report}
-                    )
-                if not np.isfinite(increment).all():
-                    raise ValueError("Nonfinite Newton increment")
-                accepted = False
-                for power in range(16):
-                    trial = u.copy()
-                    trial.ravel()[free] += increment * 2.0 ** (-power)
-                    try:
-                        trial_residual, _, _ = assemble(
+                    norm = float(np.linalg.norm(residual[free]))
+                    if initial is None:
+                        initial = norm
+                    tolerance = atol + rtol * initial
+                    if norm <= tolerance:
+                        history.append(
+                            {
+                                "load_fraction": fraction,
+                                "iterations": iteration,
+                                "residual_N": norm,
+                                "tolerance_N": tolerance,
+                            }
+                        )
+                        break
+                    if iteration == iterations:
+                        raise ValueError("Spatial Newton equilibrium did not converge")
+                    if linear_solver == "direct":
+                        with warnings.catch_warnings():
+                            warnings.simplefilter("error", MatrixRankWarning)
+                            increment = spsolve(K[free][:, free], -residual[free])
+                    else:
+                        from .fem_krylov import solve_increment
+
+                        increment, linear_report = solve_increment(
                             mesh,
-                            trial,
+                            u,
                             model,
                             parameters,
                             tension * fraction,
                             pressure * fraction,
-                            compute_tangent=False,
+                            free,
+                            -residual[free],
+                            relative_tolerance=linear_rtol,
+                            max_iterations=linear_limit,
+                            restart=linear_restart,
+                            preconditioner=preconditioner,
                         )
-                    except ValueError:
-                        continue
-                    if np.linalg.norm(trial_residual[free]) < norm * (1 - 1e-4 * 2.0 ** (-power)):
-                        u = trial
-                        accepted = True
-                        break
-                if not accepted:
-                    raise ValueError("Spatial Newton line search failed")
-                count += 1
+                        linear_history.append(
+                            {"load_step": step, "newton_iteration": iteration, **linear_report}
+                        )
+                    if not np.isfinite(increment).all():
+                        raise ValueError("Nonfinite Newton increment")
+                    accepted = False
+                    for power in range(16):
+                        trial = u.copy()
+                        trial.ravel()[free] += increment * 2.0 ** (-power)
+                        try:
+                            trial_residual, _, _ = assemble(
+                                mesh,
+                                trial,
+                                model,
+                                parameters,
+                                tension * fraction,
+                                pressure * fraction,
+                                compute_tangent=False,
+                            )
+                        except ValueError:
+                            continue
+                        if np.linalg.norm(trial_residual[free]) < norm * (
+                            1 - 1e-4 * 2.0 ** (-power)
+                        ):
+                            u = trial
+                            accepted = True
+                            break
+                    if not accepted:
+                        raise ValueError("Spatial Newton line search failed")
+                    count += 1
         F, energy, P, J = fields
-        cauchy = np.einsum("eij,ekj->eik", P, F) / J[:, None, None]
+        cauchy = P if mixed else np.einsum("eij,ekj->eik", P, F) / J[:, None, None]
         scalars = {
             "cavity_volume_m3": cavity_volume(mesh.nodes + u, mesh.cavity),
             "reference_cavity_volume_m3": cavity_volume(mesh.nodes, mesh.cavity),
             "strain_energy_J": float(mesh.volumes @ energy),
             "residual_N": norm,
-            "minimum_J": float(J.min()),
+            "minimum_J": mixed_extra.get("minimum_quadrature_J", float(J.min())),
             "maximum_displacement_m": float(np.linalg.norm(u, axis=1).max()),
         }
         regime = linearized_regime(model, parameters)
         notice = "Numerical research backend; no patient myocardial validation. P1 displacement elements can lock near incompressibility."
+        if mixed:
+            notice = "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
         notices = [notice]
-        if regime["p1_locking_risk"]:
+        if regime["p1_locking_risk"] and not mixed:
             notices.append(
                 "Nearly incompressible material: displacement P1 stiffness/accuracy requires separate qualification; equilibrium convergence does not establish accuracy."
             )
         payload = {
+            "formulation": formulation,
             "subject_id": request.subject_id,
             "units": {"coordinates": "m", "displacement": "m", "stress": "Pa"},
             "reference_nodes": mesh.nodes.tolist(),
@@ -410,6 +457,7 @@ class TetrahedralBackend:
             "anatomy_sha256": mesh.sha256,
             "validation_status": "software_checked",
             "warnings": notices,
+            **mixed_extra,
         }
         artifact = write_json_artifact(
             request.settings["output_dir"],
@@ -440,6 +488,9 @@ class TetrahedralBackend:
                 "anatomy_sha256": mesh.sha256,
                 "solver": "total-Lagrangian P1 tetrahedral Newton",
                 "material_model": model,
+                "formulation": formulation,
+                "requested_formulation": request.settings.get("formulation", "auto"),
+                "mixed_quadrature_order": mixed_extra.get("mixed_quadrature_order"),
                 "linearized_material_regime": regime,
                 "patient_validated": False,
                 "assembly_element_chunk_size": ASSEMBLY_CHUNK_SIZE,

@@ -1,0 +1,28 @@
+{
+  "suite": {
+    "tests": 146,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "qualification_passed": true,
+  "acceptance": {
+    "all_equilibria_passed": true,
+    "finest_all_regimes_within_original_15_percent": true,
+    "near_incompressible_error_improved_at_least_fourfold": true,
+    "refinement_errors_decrease": true,
+    "finest_quadrature_change_below_one_percent": true,
+    "low_load_scaled_displacement_change_below_one_percent": true,
+    "higher_bulk_error_within_original_15_percent": true,
+    "finite_load_quadrature_change_below_one_percent": true
+  },
+  "compact_receipt": {
+    "bytes": 2197378,
+    "sha256": "c8e1de7580c046e68e8541040230cf84286c1db64aace5a3173481a79bf3cb36",
+    "git_blob": "51ccc624afa638a414b392244fddcca29e1359f7"
+  },
+  "full_receipt": {
+    "bytes": 21729648,
+    "sha256": "e7599570a02d059bb452165ef973a1351352e427be1e2543f6ddc45c2611adbc"
+  }
+}
