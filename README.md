@@ -10,7 +10,7 @@ It combines stable mechanics contracts with a dependency-light reference model a
 
 ## Numerical qualification update (2026-10-22)
 
-Cached matrix-free actions and optional block Jacobi passed 128 Colab tests and an end-to-end replay, including a 32,784-node synthetic shell. A separate direct-solver benchmark found **80.2% displacement error in the finest tested nearly incompressible P1 case despite equilibrium convergence**. This formulation limitation remains unfixed. [Results, raw evidence and remaining engineering](docs/ROBUSTNESS_AND_LIMITS.md).
+Cached matrix-free actions and optional block Jacobi passed 128 Colab tests and an end-to-end replay, including a 32,784-node synthetic shell. A separate direct-solver benchmark found **80.2% displacement error in the finest tested nearly incompressible P1 case despite equilibrium convergence**. A subsequent mixed MINI correction reduced the same case to **2.53%**, passed 146 Colab tests without skips and all frozen qualification gates. Coarse meshes still fail; large mixed solves and patient accuracy remain unqualified. [Mixed results and evidence](docs/MIXED_MINI_RESULTS.md); [historical P1 evidence](docs/ROBUSTNESS_AND_LIMITS.md).
 
 <!-- VALIDATION_PRODUCT_STATUS:BEGIN -->
 ## Validation and product completion status
@@ -21,7 +21,7 @@ Cached matrix-free actions and optional block Jacobi passed 128 Colab tests and 
 |---|---|
 | Software / operational checks | Automated test sources and CI definitions are present; the uploaded numerical run completed; all 13 artifact hashes match, and the numerical harness reproduced locally. 89 local tests passed (one optional integration module skipped). |
 | Scientific or domain evidence | The current spatial tetrahedral backend is implemented. Independent synthetic shell refinement reaches 6.22% inner-displacement error; this is not a patient result or a pass of the full cardiac mechanics benchmark. |
-| Remaining for the declared product scope | Address near-incompressible locking/mixed formulation and broader benchmark convergence; implement intended dynamic EP/spatial circulation coupling and inverse-field calibration; validate registered myocardial displacement/strain/pressure on held-out measured data; qualify scar/contact only if those capabilities enter scope. |
+| Remaining for the declared product scope | Broaden mixed mesh/material qualification and add scalable mixed preconditioning; implement intended dynamic EP/spatial circulation coupling and inverse-field calibration; validate registered myocardial displacement/strain/pressure on held-out measured data; qualify scar/contact only if those capabilities enter scope. |
 
 Evidence and limits: [repository report](docs/SPATIAL_MECHANICS.md). The [organization status index](https://github.com/Virelion-Biotech/Virelion-HeartTwin/blob/main/docs/STACK_VALIDATION_STATUS.md) separates software, numerical, data-readiness and empirical qualification. Code/schema execution or a completed download is not a substitute for endpoint-specific validation.
 Latest evidence: [2026-10-15 Colab review and numerical limits](validation/COLAB_NUMERICAL_REVIEW_2026-10-15.md).

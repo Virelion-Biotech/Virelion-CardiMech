@@ -1,6 +1,6 @@
 # Nearly incompressible mechanics: diagnosis and candidate correction
 
-Status on 2026-10-22: **candidate, not accuracy-qualified or merged**.
+Status on 2026-10-22: **synthetic qualification passed; see [executed results](MIXED_MINI_RESULTS.md)**.
 
 The archived original case has 80.1939% inner radial displacement error on a
 1,548-node/7,680-tetrahedron traction-free shell, despite direct-solver equilibrium.
@@ -68,27 +68,19 @@ the element-wise displacement penalty.
   curvature. The determinant-dual formulation above avoids this term while
   preserving the same continuum volume energy on its stated convex branch.
 
-## Verified versus pending
+## Executed verification
 
-The revised determinant-pressure candidate passed **17 tests in 38.02 s** in the
-user's Edge Colab: polynomial moments, both material energy/stress/tangent and
-objectivity checks, full finite-difference Schur complement and bubble recovery,
-pressure-gradient mode control, eight active finite patches, dual-domain and
-unsupported-control checks. This was before the later automatic-selection guard
-and campaign/reporting additions; those final changes still need the full replay.
+The first determinant-pressure candidate passed 17 Colab tests in 38.02 s.
+That pilot's result was not retrieved when browser context became unavailable;
+its raw runtime logs were not exported. The fresh final pinned notebook supersedes
+that interrupted attempt and supplies the qualification evidence.
 
-The same Colab then started the finest original near-incompressible case. Its
-outcome was not retrieved: browser access stopped because the originating browser
-context became unavailable. No post-fix displacement error is asserted here.
-Raw logs remain at `/content/CardiMech_locking_20261021_230512` in that runtime;
-they have not yet been exported into this repository. Earlier failures and the
-17-test output were read directly from Colab. No local numerical solve was run.
-
-The published `Mixed_Locking_Qualification.ipynb` replays the final pinned code in
-an isolated Colab environment. It runs the entire test suite with coverage,
-the independent linear diagnostic and the unchanged nine-case baseline alongside
-nine MINI cases, plus quadrature/load/higher-bulk checks. It retains all row-wise
-15% failures. The frozen criteria are in `MIXED_MINI_ACCEPTANCE.md`.
+Implementation `beaf842e5f6518e74b69b03c40ece7f9ca8e0f93` passed the complete suite:
+146 tests, no failures/errors/skips, 89.41% coverage. The independent linear
+calculation reproduced the 80.19% P1 error; all frozen shell/refinement/quadrature/
+load/higher-bulk gates then passed. The original finest nonlinear P1 error was
+80.1939%; MINI reduced it to 2.5347%. Three coarse MINI rows still fail the
+unchanged 15% screen. See [all cases and raw evidence](MIXED_MINI_RESULTS.md).
 
 ## Selection and limits
 
@@ -104,5 +96,6 @@ assembled direct solve and the standard mesh profile only. It rejects J>=e and
 p>=kappa/e rather than silently crossing a nonconvex energy branch. Exact
 incompressibility, scalable mixed preconditioning, heterogeneous interfaces,
 pathological/deformed meshes and patient/whole-heart accuracy are unqualified.
-The default guard must not be released until final Colab accuracy acceptance and
-latest-head CI have passed. HeartTwin's released pin is unchanged in this draft.
+The Colab accuracy gate passed. Release/integration still requires latest-head
+CI and the HeartTwin pinned/current-main/operational checks; software success
+does not establish patient prediction accuracy.

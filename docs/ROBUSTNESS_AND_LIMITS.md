@@ -1,5 +1,7 @@
 # Mechanics robustness and qualification limits
 
+**Subsequent correction:** [mixed MINI qualification](MIXED_MINI_RESULTS.md) reduced the unchanged finest near-incompressible error from 80.19% to 2.53%. The failed P1 results below are preserved historical evidence; the matrix-free P1 approximation remains susceptible to locking. Auto now selects standard/direct MINI for nearly incompressible neo-Hookean requests or rejects unsupported combinations.
+
 ## Implemented
 
 Matrix-free Newton solves now cache F, inverse transpose, log determinant and (for Guccione) second-order anisotropic material coefficients once per linear solve. No fourth-order element tangent cache or global sparse tangent is retained. This exchanges O(elements) second-order storage for fewer repeated inverse/material evaluations. The uncached directional implementation remains as an independent regression path. New tests compare cached actions with assembled and uncached actions, including rotated fibres, active tension and follower pressure. Caller displacement/parameter mutation does not alter the frozen material state.
@@ -20,7 +22,7 @@ The direct solver was used for a traction-free outer shell with symmetry constra
 
 All nine cases met their equilibrium tolerance, yet **five failed the 15% research regression screen**. The finest nearly incompressible case remained about 80.2% too stiff. Its equilibrium residual was about 1.3e-12 N. The low-lambda finest result was about 2.1% error. This behavior is consistent with displacement P1 volumetric locking; using a direct solve rules out GMRES nonconvergence as the explanation. Small deformation makes the linear reference appropriate as a numerical check, but this is not biological validation.
 
-The 15% screen is a broad synthetic regression criterion, not a clinical accuracy standard. nu below 0.49 is not an accuracy guarantee: the coarse low-lambda mesh also failed. Warning presence does not determine a measured error for another mesh. Preconditioning can improve convergence but cannot correct the underlying approximation space. **The locking formulation is not fixed in this change.**
+The 15% screen is a broad synthetic regression criterion, not a clinical accuracy standard. nu below 0.49 is not an accuracy guarantee: the coarse low-lambda mesh also failed. Warning presence does not determine a measured error for another mesh. Preconditioning can improve convergence but cannot correct the underlying approximation space. **Cached actions and preconditioning did not fix locking; the subsequent mixed formulation addresses it separately, as linked above.**
 
 ## Executed checks and replay
 
@@ -43,6 +45,6 @@ The published [Colab notebook](../notebooks/Mechanics_Completion.ipynb) pins the
 
 ## Remaining engineering
 
-A locking-resistant formulation needs a separate implementation and verification campaign, for example a stable mixed displacement-pressure formulation. Requiring work: stability/pressure modes, incompressible patch/objectivity tests, consistent tangent checks, independent analytical refinement over material regimes, solver/preconditioner robustness and coupled model contracts. It is not sufficient to loosen Newton tolerances, increase kappa, change a flag or mask the failed cases.
+The separate mixed MINI implementation and frozen synthetic verification campaign are recorded above. Broader work remains: stability/pressure modes, incompressible patch/objectivity tests, consistent tangent checks, independent analytical refinement over material regimes, solver/preconditioner robustness and coupled model contracts. It is not sufficient to loosen Newton tolerances, increase kappa, change a flag or mask the failed cases.
 
 Block Jacobi does not supply multigrid, domain decomposition or universal mesh/material robustness. Large-scale evidence remains confined to the tested compressible neo-Hookean shell and its constraints. Actual KIT needs qualified reference state, reviewed geometry/fibres/cavities/materials and boundary conditions. EDGAR export conventions remain unqualified. Human cellular physiology, Purkinje/atrial details, circulation/valve coupling, hospital workflow access and independent patient accuracy still need separate work. The system is not a fully personalized, clinically qualified whole-heart twin.

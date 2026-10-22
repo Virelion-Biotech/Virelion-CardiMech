@@ -1,6 +1,6 @@
 # Experimental matrix-free spatial mechanics
 
-**Follow-up qualification:** cached material state and optional `linear_preconditioner="block_jacobi"` are now available. A separate direct-solver near-incompressible benchmark measured about 80.2% error at its finest tested mesh despite equilibrium convergence. The compressible shell results below do not establish accuracy in that regime. See [ROBUSTNESS_AND_LIMITS.md](ROBUSTNESS_AND_LIMITS.md) for the executed replay and unresolved locking defect.
+**Follow-up qualification:** cached material state and optional `linear_preconditioner="block_jacobi"` are now available. A separate direct-solver near-incompressible benchmark measured about 80.2% error at its finest tested mesh despite equilibrium convergence. The compressible shell results below do not establish accuracy in that regime. See [ROBUSTNESS_AND_LIMITS.md](ROBUSTNESS_AND_LIMITS.md) for the historical failed P1 replay, and [MIXED_MINI_RESULTS.md](MIXED_MINI_RESULTS.md) for the subsequent standard/direct mixed correction. Large-profile matrix-free P1 is not the mixed formulation; auto selection rejects unsupported nearly incompressible combinations.
 
 The direct solver remains the default with the original 5,000-node/20,000-tetrahedron guard. Explicit larger-mesh research settings:
 
