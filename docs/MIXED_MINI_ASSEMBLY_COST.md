@@ -50,6 +50,13 @@ Edge Colab connected and cloned frozen reference
 3. Two consecutive browser requests timed out. No profile, candidate numerical
    check or timing result was retrieved. The candidate remains unvalidated;
    the merged solver and HeartTwin pin are unchanged.
+4. A subsequent browser retry was explicitly blocked because the originating
+   Edge browser context was unavailable. Static replay review found an evidence
+   export defect: required setup errors aborted before packaging, and the final
+   failure assertion prevented offering the archive after a failed regression.
+   The replay now captures setup exceptions, packages partial logs and the
+   traceback, and offers the archive before raising its final failure gate.
+   This is a diagnostic/reproducibility fix; no new solver result is implied.
 
 The original [qualified results](MIXED_MINI_RESULTS.md) still apply only to the
 merged implementation. Coarse mesh errors, direct-solver capacity and patient
