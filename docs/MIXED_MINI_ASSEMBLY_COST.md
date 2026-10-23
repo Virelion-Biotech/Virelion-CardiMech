@@ -1,10 +1,18 @@
-# MINI assembly cost follow-up — candidate, not yet qualified
+# MINI assembly cost follow-up — derivation and attempt log
+
+**Executed follow-up:** the 2026-10-23 Edge Colab replay passed 152 tests without
+skips and all eight frozen gates over 23 solves. Paired finest neo-Hookean
+assembly improved 7.45x with unchanged numerical results. See
+[executed results, raw evidence and limits](MIXED_MINI_ASSEMBLY_RESULTS.md).
+The earlier pending status and failures below describe the attempts before this
+successful replay.
 
 The merged locking correction measured about 193 seconds for the finest
 7,680-tetrahedron case in the original Colab campaign. This follow-up targets
 the cost of contracting its neo-Hookean displacement tangent. It does not
 change the approximation space, quadrature, pressure constraint, condensation,
-Newton tolerances or accuracy screen. No speedup has yet been measured.
+Newton tolerances or accuracy screen. Speedup was unmeasured at the initial
+candidate cutoff; the subsequent controlled measurements are linked above.
 
 For `H_ai = F^-T_ij G_aj`, the exact displacement block integrand is
 
@@ -18,7 +26,7 @@ quadrature-wise fourth-order material tensor. The Guccione path retains its
 full material tensor. Prescribed active fibre tension is included explicitly.
 The public material function retains its full tangent for independent checks.
 
-## Required checks before merge
+## Qualification checks (completed in the linked replay)
 
 - Six randomized, nonaffine full-tensor comparisons: quadrature orders 5–7,
   zero/nonzero active tension, signed pressure, rotated fibres.
@@ -30,8 +38,8 @@ The public material function retains its full tangent for independent checks.
   tangent, residual, condensed residual, recovered bubbles and every field.
 - Unchanged 23-solve `scripts/verify_mixed_locking.py` campaign. All eight frozen
   acceptance gates must pass, with coarse accuracy failures still retained.
-- Latest-head CI and stack compatibility review. Do not advance HeartTwin's
-  pinned dependency until this candidate is qualified.
+- Latest-head CI and stack compatibility review remain merge gates; the linked
+  replay supplies the numerical qualification required for a HeartTwin pin update.
 
 ## Attempt log, 2026-10-22
 

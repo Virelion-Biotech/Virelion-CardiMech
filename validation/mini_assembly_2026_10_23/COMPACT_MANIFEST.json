@@ -1,0 +1,1461 @@
+{
+  "replay": {
+    "candidate_code_commit": "584785c32caadd3c6bc42fef712b3762789add85",
+    "reference_commit": "b2dacf79a8d0cdb93fbd34e5d78b19d4ee06d534",
+    "python": "3.13.16",
+    "stages": [
+      {
+        "name": "virtualenv-install",
+        "command": [
+          "/usr/bin/python3",
+          "-m",
+          "pip",
+          "install",
+          "-q",
+          "virtualenv"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:21:14.432807+00:00",
+        "elapsed_seconds": 6.170579
+      },
+      {
+        "name": "venv",
+        "command": [
+          "/usr/bin/python3",
+          "-m",
+          "virtualenv",
+          "/content/mini_assembly_20261023_192114_429258/venv"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:21:20.608212+00:00",
+        "elapsed_seconds": 1.436594
+      },
+      {
+        "name": "clone",
+        "command": [
+          "git",
+          "clone",
+          "https://github.com/Virelion-Biotech/Virelion-CardiMech.git",
+          "/content/mini_assembly_20261023_192114_429258/CardiMech"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:21:22.049473+00:00",
+        "elapsed_seconds": 0.92208
+      },
+      {
+        "name": "checkout",
+        "command": [
+          "git",
+          "checkout",
+          "584785c32caadd3c6bc42fef712b3762789add85"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:21:22.975436+00:00",
+        "elapsed_seconds": 0.047457
+      },
+      {
+        "name": "install",
+        "command": [
+          "/content/mini_assembly_20261023_192114_429258/venv/bin/python",
+          "-m",
+          "pip",
+          "install",
+          "-q",
+          "-e",
+          "/content/mini_assembly_20261023_192114_429258/CardiMech[dev,validation,spatial]"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:21:23.025918+00:00",
+        "elapsed_seconds": 29.015208
+      },
+      {
+        "name": "infer-clone",
+        "command": [
+          "git",
+          "clone",
+          "https://github.com/Virelion-Biotech/Virelion-CardiInfer.git",
+          "/content/mini_assembly_20261023_192114_429258/CardiInfer"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:21:52.043004+00:00",
+        "elapsed_seconds": 0.396006
+      },
+      {
+        "name": "infer-checkout",
+        "command": [
+          "git",
+          "checkout",
+          "15a7bd5bf4c23784245b361c017a376572766254"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:21:52.441992+00:00",
+        "elapsed_seconds": 0.01416
+      },
+      {
+        "name": "infer-install",
+        "command": [
+          "/content/mini_assembly_20261023_192114_429258/venv/bin/python",
+          "-m",
+          "pip",
+          "install",
+          "-q",
+          "-e",
+          "/content/mini_assembly_20261023_192114_429258/CardiInfer"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:21:52.458107+00:00",
+        "elapsed_seconds": 3.892549
+      },
+      {
+        "name": "dependencies",
+        "command": [
+          "/content/mini_assembly_20261023_192114_429258/venv/bin/python",
+          "-m",
+          "pip",
+          "freeze"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:21:56.352496+00:00",
+        "elapsed_seconds": 0.52094
+      },
+      {
+        "name": "lint",
+        "command": [
+          "/content/mini_assembly_20261023_192114_429258/venv/bin/python",
+          "-m",
+          "ruff",
+          "check",
+          "src",
+          "tests",
+          "scripts"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:21:56.875422+00:00",
+        "elapsed_seconds": 0.103416
+      },
+      {
+        "name": "format",
+        "command": [
+          "/content/mini_assembly_20261023_192114_429258/venv/bin/python",
+          "-m",
+          "ruff",
+          "format",
+          "--check",
+          "src",
+          "tests",
+          "scripts"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:21:56.981372+00:00",
+        "elapsed_seconds": 0.094356
+      },
+      {
+        "name": "suite",
+        "command": [
+          "/content/mini_assembly_20261023_192114_429258/venv/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "--junitxml=/content/mini_assembly_20261023_192114_429258/evidence/junit.xml",
+          "--cov=cardimech",
+          "--cov-fail-under=80"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:21:57.078097+00:00",
+        "elapsed_seconds": 41.433792
+      },
+      {
+        "name": "comparison",
+        "command": [
+          "/content/mini_assembly_20261023_192114_429258/venv/bin/python",
+          "scripts/compare_mini_assembly.py",
+          "--output",
+          "/content/mini_assembly_20261023_192114_429258/evidence/comparison"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:22:38.514896+00:00",
+        "elapsed_seconds": 283.211587
+      },
+      {
+        "name": "qualification",
+        "command": [
+          "/content/mini_assembly_20261023_192114_429258/venv/bin/python",
+          "scripts/verify_mixed_locking.py",
+          "--output",
+          "/content/mini_assembly_20261023_192114_429258/evidence/qualification"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:27:21.729478+00:00",
+        "elapsed_seconds": 300.706574
+      },
+      {
+        "name": "state-export",
+        "command": [
+          "/content/mini_assembly_20261023_192114_429258/venv/bin/python",
+          "/content/mini_assembly_20261023_192114_429258/export_states.py",
+          "/content/mini_assembly_20261023_192114_429258/evidence"
+        ],
+        "returncode": 0,
+        "started_utc": "2026-10-23T19:32:27.596536+00:00",
+        "elapsed_seconds": 2.524625
+      }
+    ],
+    "scope": "synthetic software and numerical regression; no patient accuracy qualification",
+    "all_commands_passed": true,
+    "failure": null,
+    "source_sha256": {
+      "src/cardimech/__init__.py": "eca016f8ee022acfadd8eca40f0e342bdc8c554d23b0b69c7a8e1397ca02cc00",
+      "src/cardimech/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "src/cardimech/activation.py": "b99d676118a929b38d91d64020d2477a6833a3c224736e956aeeaa811981fcdd",
+      "src/cardimech/api.py": "a2088daed072b9f559e4fb93a040764414ac131b48be9b34d764c6427e816017",
+      "src/cardimech/artifacts.py": "43524b1e2bf4d7f6205a158143a63fdd532e3d3d149b9250c5123ce559f0b5b3",
+      "src/cardimech/backends.py": "1416307508e8a21f244225e5a8162c75239553e7a0bf775920105e5097f7c431",
+      "src/cardimech/calibration.py": "48aa6b25610ca97f833e6c7de18ad3a1d9a90c1ae08d6901581b0780fa3a89c9",
+      "src/cardimech/circulation.py": "6e8e82495815f3f432f6e7b6fe8ae0fa14319f81a714026cf02e8f23672a8972",
+      "src/cardimech/cli.py": "c53c06bc59dd419d6bc8c5c34c288288f30f160761b81a215698f90324af25d2",
+      "src/cardimech/external.py": "6d43feb32c445c72d64e283f83f87d6b773e70d7721d69da2df636ecadc02e68",
+      "src/cardimech/fem_backend.py": "4b93375dd5ec340fa02f4b437486436d3485c0b39e797aa308e16a80ceea5f0a",
+      "src/cardimech/fem_examples.py": "f23b036f4d0fffcf646f88a27bf765a09ba333d3a99f63646fc42935e62de512",
+      "src/cardimech/fem_krylov.py": "162ace078ff63abb1af8793d5f382a884c2fa4be64adbb4a60d32cd52cd91527",
+      "src/cardimech/fem_linearization.py": "2813502b9efe6ea733a565e1520d5499c28cd97e242f1dab303f4781f3b5d096",
+      "src/cardimech/fem_materials.py": "ae45f3d56897cffb48dd27721955c7ca99149afe6868ae8d90a109a0ee75f1a1",
+      "src/cardimech/fem_mesh.py": "56a753762acdc4e87f1227644b73467004c82d087133f14ba987a12d334378c6",
+      "src/cardimech/fem_mixed.py": "f6678a21b51c23871bd3e83587bc2aeec8ede421fb4f50f3e349710924e2c256",
+      "src/cardimech/forward.py": "783bd8b6c6fbd94d15d716743365ff51777eaba27715ab49ce98776489c80fe2",
+      "src/cardimech/forward_cli.py": "3e11c004ad1ea2e0df0f2b027eb3caf3a7a55d734fc1c0cf377a3e36121486eb",
+      "src/cardimech/handoff.py": "3a16625b28675679e5e674b915046fb5f361e3b9c7df76e12bd09d05e539f7fc",
+      "src/cardimech/hearttwin_cli.py": "8928487da7e29c2fc77ac745c8dcf3dbf03a6d3223b27ec7214de2bfe05b940d",
+      "src/cardimech/materials.py": "e008c57c76b81a9ef4df915051c7272f3d2c8be1015fbb072d962070af14ee9b",
+      "src/cardimech/models.py": "1a85c7381bc4b3450237c5fde30b2b9ac5b92ae94d65808d6b6b22adf31fe48b",
+      "src/cardimech/pv.py": "da7f78ac9e1e6f2abf5ea5e58ea9d005c7ad65118e8fb432e0d20d1485294877",
+      "src/cardimech/reference_backend.py": "4bcbc7d0e9f3f95e4bf5a9ff153cb417df5f28b9c48e2a84aa777fae0b714c46",
+      "src/cardimech/serialization.py": "67813b2637dd28eaf00bd914cfa90a2103457de426ab7135610f7f35eea0950b",
+      "src/cardimech/service.py": "c57846f048d15d2038c747bdbbdff57ddfdac1f8e525d4adcb02d02a1e491331",
+      "src/cardimech/subprocess_backend.py": "6d6abc8400e967409716ff6d95ed95d330574810ae819c27c6ec0d6c4c900f5d",
+      "src/cardimech/validation.py": "38a71c733191f795afd3407fa9f0aee3dc815ced247140678527c765187992e4"
+    }
+  },
+  "suite_counts": {
+    "tests": 152,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "qualification": {
+    "acceptance": {
+      "all_equilibria_passed": true,
+      "finest_all_regimes_within_original_15_percent": true,
+      "near_incompressible_error_improved_at_least_fourfold": true,
+      "refinement_errors_decrease": true,
+      "finest_quadrature_change_below_one_percent": true,
+      "low_load_scaled_displacement_change_below_one_percent": true,
+      "higher_bulk_error_within_original_15_percent": true,
+      "finite_load_quadrature_change_below_one_percent": true
+    },
+    "passed": true,
+    "baseline": [
+      {
+        "formulation": "displacement_p1",
+        "quadrature_order": null,
+        "lambda_Pa": 1000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 1,
+        "analytic_inner_displacement_m": 8.789473684210528e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.25,
+          "p1_locking_risk": false,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 72,
+        "tetrahedra": 288,
+        "observed_inner_displacement_m": 7.020809554108402e-07,
+        "relative_displacement_error": 0.20122526031102034,
+        "accuracy_within_15_percent": false,
+        "equilibrium_passed": true,
+        "residual_N": 7.088193041559647e-16,
+        "warnings": [
+          "Numerical research backend; no patient myocardial validation. P1 displacement elements can lock near incompressibility."
+        ],
+        "minimum_J": 1.0000179930283715,
+        "strain_energy_J": 1.2576307090606734e-10,
+        "load_history": [
+          {
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 7.088193041559647e-16,
+            "tolerance_N": 1.0085344335487069e-10
+          }
+        ],
+        "elapsed_seconds": 0.16432141199993566
+      },
+      {
+        "formulation": "displacement_p1",
+        "quadrature_order": null,
+        "lambda_Pa": 1000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 2,
+        "analytic_inner_displacement_m": 8.789473684210528e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.25,
+          "p1_locking_risk": false,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 330,
+        "tetrahedra": 1536,
+        "observed_inner_displacement_m": 8.243147836919642e-07,
+        "relative_displacement_error": 0.062156832925310365,
+        "accuracy_within_15_percent": true,
+        "equilibrium_passed": true,
+        "residual_N": 4.048786682771244e-16,
+        "warnings": [
+          "Numerical research backend; no patient myocardial validation. P1 displacement elements can lock near incompressibility."
+        ],
+        "minimum_J": 1.0000134883657485,
+        "strain_energy_J": 1.898827561061381e-10,
+        "load_history": [
+          {
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 4.048786682771244e-16,
+            "tolerance_N": 1.005745428321372e-10
+          }
+        ],
+        "elapsed_seconds": 1.0817237720000321
+      },
+      {
+        "formulation": "displacement_p1",
+        "quadrature_order": null,
+        "lambda_Pa": 1000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 3,
+        "analytic_inner_displacement_m": 8.789473684210528e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.25,
+          "p1_locking_risk": false,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 1548,
+        "tetrahedra": 7680,
+        "observed_inner_displacement_m": 8.602730520416685e-07,
+        "relative_displacement_error": 0.021246228216065956,
+        "accuracy_within_15_percent": true,
+        "equilibrium_passed": true,
+        "residual_N": 2.751327311702647e-16,
+        "warnings": [
+          "Numerical research backend; no patient myocardial validation. P1 displacement elements can lock near incompressibility."
+        ],
+        "minimum_J": 1.000015717462324,
+        "strain_energy_J": 2.1164981972236703e-10,
+        "load_history": [
+          {
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 2.751327311702647e-16,
+            "tolerance_N": 1.0031174478905628e-10
+          }
+        ],
+        "elapsed_seconds": 4.682132808000006
+      },
+      {
+        "formulation": "displacement_p1",
+        "quadrature_order": null,
+        "lambda_Pa": 100000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 1,
+        "analytic_inner_displacement_m": 7.133147438131755e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.49504950495049505,
+          "p1_locking_risk": true,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 72,
+        "tetrahedra": 288,
+        "observed_inner_displacement_m": 5.020181370171685e-07,
+        "relative_displacement_error": 0.2962179159041016,
+        "accuracy_within_15_percent": false,
+        "equilibrium_passed": true,
+        "residual_N": 3.200096294202121e-14,
+        "warnings": [
+          "Numerical research backend; no patient myocardial validation. P1 displacement elements can lock near incompressibility.",
+          "Nearly incompressible material: displacement P1 stiffness/accuracy requires separate qualification; equilibrium convergence does not establish accuracy."
+        ],
+        "minimum_J": 0.9999968333610741,
+        "strain_energy_J": 9.047521135135728e-11,
+        "load_history": [
+          {
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 3.200096294202121e-14,
+            "tolerance_N": 1.0085344335487069e-10
+          }
+        ],
+        "elapsed_seconds": 0.14937588199995844
+      },
+      {
+        "formulation": "displacement_p1",
+        "quadrature_order": null,
+        "lambda_Pa": 100000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 2,
+        "analytic_inner_displacement_m": 7.133147438131755e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.49504950495049505,
+          "p1_locking_risk": true,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 330,
+        "tetrahedra": 1536,
+        "observed_inner_displacement_m": 6.111874718003562e-07,
+        "relative_displacement_error": 0.1431728040091759,
+        "accuracy_within_15_percent": true,
+        "equilibrium_passed": true,
+        "residual_N": 2.6866807405809917e-14,
+        "warnings": [
+          "Numerical research backend; no patient myocardial validation. P1 displacement elements can lock near incompressibility.",
+          "Nearly incompressible material: displacement P1 stiffness/accuracy requires separate qualification; equilibrium convergence does not establish accuracy."
+        ],
+        "minimum_J": 0.9999945252980575,
+        "strain_energy_J": 1.4110780444236651e-10,
+        "load_history": [
+          {
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 2.6866807405809917e-14,
+            "tolerance_N": 1.005745428321372e-10
+          }
+        ],
+        "elapsed_seconds": 0.6672881020001569
+      },
+      {
+        "formulation": "displacement_p1",
+        "quadrature_order": null,
+        "lambda_Pa": 100000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 3,
+        "analytic_inner_displacement_m": 7.133147438131755e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.49504950495049505,
+          "p1_locking_risk": true,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 1548,
+        "tetrahedra": 7680,
+        "observed_inner_displacement_m": 6.495352209055675e-07,
+        "relative_displacement_error": 0.0894128762384203,
+        "accuracy_within_15_percent": true,
+        "equilibrium_passed": true,
+        "residual_N": 1.441768193095231e-14,
+        "warnings": [
+          "Numerical research backend; no patient myocardial validation. P1 displacement elements can lock near incompressibility.",
+          "Nearly incompressible material: displacement P1 stiffness/accuracy requires separate qualification; equilibrium convergence does not establish accuracy."
+        ],
+        "minimum_J": 0.9999931594975024,
+        "strain_energy_J": 1.60177178153584e-10,
+        "load_history": [
+          {
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 1.441768193095231e-14,
+            "tolerance_N": 1.0031174478905628e-10
+          }
+        ],
+        "elapsed_seconds": 3.8281230869999945
+      },
+      {
+        "formulation": "displacement_p1",
+        "quadrature_order": null,
+        "lambda_Pa": 10000000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 1,
+        "analytic_inner_displacement_m": 7.105543840936922e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.49995000499950004,
+          "p1_locking_risk": true,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 72,
+        "tetrahedra": 288,
+        "observed_inner_displacement_m": 1.0054963859578615e-07,
+        "relative_displacement_error": 0.8584912839232755,
+        "accuracy_within_15_percent": false,
+        "equilibrium_passed": true,
+        "residual_N": 3.178494678007739e-12,
+        "warnings": [
+          "Numerical research backend; no patient myocardial validation. P1 displacement elements can lock near incompressibility.",
+          "Nearly incompressible material: displacement P1 stiffness/accuracy requires separate qualification; equilibrium convergence does not establish accuracy."
+        ],
+        "minimum_J": 0.9999992474600031,
+        "strain_energy_J": 1.8103799852238618e-11,
+        "load_history": [
+          {
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 3.178494678007739e-12,
+            "tolerance_N": 1.0085344335487069e-10
+          }
+        ],
+        "elapsed_seconds": 0.14320424800007459
+      },
+      {
+        "formulation": "displacement_p1",
+        "quadrature_order": null,
+        "lambda_Pa": 10000000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 2,
+        "analytic_inner_displacement_m": 7.105543840936922e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.49995000499950004,
+          "p1_locking_risk": true,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 330,
+        "tetrahedra": 1536,
+        "observed_inner_displacement_m": 1.0667439235837555e-07,
+        "relative_displacement_error": 0.8498716006172587,
+        "accuracy_within_15_percent": false,
+        "equilibrium_passed": true,
+        "residual_N": 2.330494964931388e-12,
+        "warnings": [
+          "Numerical research backend; no patient myocardial validation. P1 displacement elements can lock near incompressibility.",
+          "Nearly incompressible material: displacement P1 stiffness/accuracy requires separate qualification; equilibrium convergence does not establish accuracy."
+        ],
+        "minimum_J": 0.9999988880050359,
+        "strain_energy_J": 2.4655585578476292e-11,
+        "load_history": [
+          {
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 2.330494964931388e-12,
+            "tolerance_N": 1.005745428321372e-10
+          }
+        ],
+        "elapsed_seconds": 0.6860618529999556
+      },
+      {
+        "formulation": "displacement_p1",
+        "quadrature_order": null,
+        "lambda_Pa": 10000000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 3,
+        "analytic_inner_displacement_m": 7.105543840936922e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.49995000499950004,
+          "p1_locking_risk": true,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 1548,
+        "tetrahedra": 7680,
+        "observed_inner_displacement_m": 1.407332864226848e-07,
+        "relative_displacement_error": 0.801938754340121,
+        "accuracy_within_15_percent": false,
+        "equilibrium_passed": true,
+        "residual_N": 1.3147333682281639e-12,
+        "warnings": [
+          "Numerical research backend; no patient myocardial validation. P1 displacement elements can lock near incompressibility.",
+          "Nearly incompressible material: displacement P1 stiffness/accuracy requires separate qualification; equilibrium convergence does not establish accuracy."
+        ],
+        "minimum_J": 0.9999987339990233,
+        "strain_energy_J": 3.4776307615268975e-11,
+        "load_history": [
+          {
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 1.3147333682281639e-12,
+            "tolerance_N": 1.0031174478905628e-10
+          }
+        ],
+        "elapsed_seconds": 5.084724760999961
+      }
+    ],
+    "mixed": [
+      {
+        "formulation": "mixed_mini",
+        "quadrature_order": 5,
+        "lambda_Pa": 1000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 1,
+        "analytic_inner_displacement_m": 8.789473684210528e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.25,
+          "p1_locking_risk": false,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 72,
+        "tetrahedra": 288,
+        "observed_inner_displacement_m": 7.036467442126647e-07,
+        "relative_displacement_error": 0.19944382394966303,
+        "accuracy_within_15_percent": false,
+        "equilibrium_passed": true,
+        "residual_N": 2.955978476481936e-16,
+        "warnings": [
+          "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+        ],
+        "minimum_J": 1.0000166974590199,
+        "strain_energy_J": 1.2597073262159088e-10,
+        "load_history": [
+          {
+            "bubble_residual_N": 1.0909259565734166e-16,
+            "displacement_residual_N": 2.746402384685772e-16,
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 2.955978476481936e-16,
+            "scaled_pressure_residual_N": 7.045035195900222e-18,
+            "tolerance_N": 1.0085344335487069e-10,
+            "weak_volume_constraint_m3": 2.6939440444983146e-22
+          }
+        ],
+        "elapsed_seconds": 1.210201262000055
+      },
+      {
+        "formulation": "mixed_mini",
+        "quadrature_order": 5,
+        "lambda_Pa": 1000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 2,
+        "analytic_inner_displacement_m": 8.789473684210528e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.25,
+          "p1_locking_risk": false,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 330,
+        "tetrahedra": 1536,
+        "observed_inner_displacement_m": 8.258737069398765e-07,
+        "relative_displacement_error": 0.060383207673194654,
+        "accuracy_within_15_percent": true,
+        "equilibrium_passed": true,
+        "residual_N": 2.0358260435924637e-16,
+        "warnings": [
+          "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+        ],
+        "minimum_J": 1.0000121184438522,
+        "strain_energy_J": 1.9022571158179718e-10,
+        "load_history": [
+          {
+            "bubble_residual_N": 7.4685418316734e-17,
+            "displacement_residual_N": 1.8934601263123437e-16,
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 2.0358260435924637e-16,
+            "scaled_pressure_residual_N": 4.00656825729011e-18,
+            "tolerance_N": 1.005745428321372e-10,
+            "weak_volume_constraint_m3": 1.6709319323303618e-22
+          }
+        ],
+        "elapsed_seconds": 6.504670123000096
+      },
+      {
+        "formulation": "mixed_mini",
+        "quadrature_order": 5,
+        "lambda_Pa": 1000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 3,
+        "analytic_inner_displacement_m": 8.789473684210528e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.25,
+          "p1_locking_risk": false,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 1548,
+        "tetrahedra": 7680,
+        "observed_inner_displacement_m": 8.615744089942039e-07,
+        "relative_displacement_error": 0.019765642461684375,
+        "accuracy_within_15_percent": true,
+        "equilibrium_passed": true,
+        "residual_N": 1.2091832153096855e-16,
+        "warnings": [
+          "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+        ],
+        "minimum_J": 1.0000146311087312,
+        "strain_energy_J": 2.1193714209607828e-10,
+        "load_history": [
+          {
+            "bubble_residual_N": 4.615119631340986e-17,
+            "displacement_residual_N": 1.1175125671336194e-16,
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 1.2091832153096855e-16,
+            "scaled_pressure_residual_N": 1.7216804848945714e-18,
+            "tolerance_N": 1.0031174478905628e-10,
+            "weak_volume_constraint_m3": 7.347983687834947e-23
+          }
+        ],
+        "elapsed_seconds": 37.83825362599987
+      },
+      {
+        "formulation": "mixed_mini",
+        "quadrature_order": 5,
+        "lambda_Pa": 100000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 1,
+        "analytic_inner_displacement_m": 7.133147438131755e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.49504950495049505,
+          "p1_locking_risk": true,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 72,
+        "tetrahedra": 288,
+        "observed_inner_displacement_m": 5.352504311369554e-07,
+        "relative_displacement_error": 0.24962937359788673,
+        "accuracy_within_15_percent": false,
+        "equilibrium_passed": true,
+        "residual_N": 2.403918078414493e-16,
+        "warnings": [
+          "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+        ],
+        "minimum_J": 0.9999858749691872,
+        "strain_energy_J": 9.642455323011495e-11,
+        "load_history": [
+          {
+            "bubble_residual_N": 9.571090478607429e-17,
+            "displacement_residual_N": 2.2030414836854253e-16,
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 2.403918078414493e-16,
+            "scaled_pressure_residual_N": 9.681228946911059e-18,
+            "tolerance_N": 1.0085344335487069e-10,
+            "weak_volume_constraint_m3": 3.701994353871931e-22
+          }
+        ],
+        "elapsed_seconds": 1.238974209999924
+      },
+      {
+        "formulation": "mixed_mini",
+        "quadrature_order": 5,
+        "lambda_Pa": 100000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 2,
+        "analytic_inner_displacement_m": 7.133147438131755e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.49504950495049505,
+          "p1_locking_risk": true,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 330,
+        "tetrahedra": 1536,
+        "observed_inner_displacement_m": 6.59181326043813e-07,
+        "relative_displacement_error": 0.07588994653325236,
+        "accuracy_within_15_percent": true,
+        "equilibrium_passed": true,
+        "residual_N": 1.7752877325086335e-16,
+        "warnings": [
+          "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+        ],
+        "minimum_J": 0.9999811426261683,
+        "strain_energy_J": 1.5198609149392212e-10,
+        "load_history": [
+          {
+            "bubble_residual_N": 7.05940526787284e-17,
+            "displacement_residual_N": 1.6285226276600023e-16,
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 1.7752877325086335e-16,
+            "scaled_pressure_residual_N": 3.476430690088212e-18,
+            "tolerance_N": 1.005745428321372e-10,
+            "weak_volume_constraint_m3": 1.4498393260006318e-22
+          }
+        ],
+        "elapsed_seconds": 7.701234128999886
+      },
+      {
+        "formulation": "mixed_mini",
+        "quadrature_order": 5,
+        "lambda_Pa": 100000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 3,
+        "analytic_inner_displacement_m": 7.133147438131755e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.49504950495049505,
+          "p1_locking_risk": true,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 1548,
+        "tetrahedra": 7680,
+        "observed_inner_displacement_m": 6.953666312126072e-07,
+        "relative_displacement_error": 0.02516156122698773,
+        "accuracy_within_15_percent": true,
+        "equilibrium_passed": true,
+        "residual_N": 1.1193927415070136e-16,
+        "warnings": [
+          "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+        ],
+        "minimum_J": 0.9999824051384789,
+        "strain_energy_J": 1.710566490469371e-10,
+        "load_history": [
+          {
+            "bubble_residual_N": 4.3424821173086825e-17,
+            "displacement_residual_N": 1.031605553457942e-16,
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 1.1193927415070136e-16,
+            "scaled_pressure_residual_N": 1.6080498184548917e-18,
+            "tolerance_N": 1.0031174478905628e-10,
+            "weak_volume_constraint_m3": 6.863017828466161e-23
+          }
+        ],
+        "elapsed_seconds": 37.96957105399997
+      },
+      {
+        "formulation": "mixed_mini",
+        "quadrature_order": 5,
+        "lambda_Pa": 10000000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 1,
+        "analytic_inner_displacement_m": 7.105543840936922e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.49995000499950004,
+          "p1_locking_risk": true,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 72,
+        "tetrahedra": 288,
+        "observed_inner_displacement_m": 5.323153190359284e-07,
+        "relative_displacement_error": 0.25084507118354715,
+        "accuracy_within_15_percent": false,
+        "equilibrium_passed": true,
+        "residual_N": 2.6556609539781517e-16,
+        "warnings": [
+          "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+        ],
+        "minimum_J": 0.9999846063506911,
+        "strain_energy_J": 9.59169522057348e-11,
+        "load_history": [
+          {
+            "bubble_residual_N": 1.0247090828984529e-16,
+            "displacement_residual_N": 2.448744954165121e-16,
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 2.6556609539781517e-16,
+            "scaled_pressure_residual_N": 7.845092326044216e-18,
+            "tolerance_N": 1.0085344335487069e-10,
+            "weak_volume_constraint_m3": 2.9998748498093977e-22
+          }
+        ],
+        "elapsed_seconds": 1.1874181650000537
+      },
+      {
+        "formulation": "mixed_mini",
+        "quadrature_order": 5,
+        "lambda_Pa": 10000000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 2,
+        "analytic_inner_displacement_m": 7.105543840936922e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.49995000499950004,
+          "p1_locking_risk": true,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 330,
+        "tetrahedra": 1536,
+        "observed_inner_displacement_m": 6.56339392403592e-07,
+        "relative_displacement_error": 0.07629956679424488,
+        "accuracy_within_15_percent": true,
+        "equilibrium_passed": true,
+        "residual_N": 1.8551940372544026e-16,
+        "warnings": [
+          "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+        ],
+        "minimum_J": 0.9999793661325039,
+        "strain_energy_J": 1.513325050325039e-10,
+        "load_history": [
+          {
+            "bubble_residual_N": 7.074623875276445e-17,
+            "displacement_residual_N": 1.7146285025840523e-16,
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 1.8551940372544026e-16,
+            "scaled_pressure_residual_N": 3.593026891557469e-18,
+            "tolerance_N": 1.005745428321372e-10,
+            "weak_volume_constraint_m3": 1.4984655348623551e-22
+          }
+        ],
+        "elapsed_seconds": 6.364234580000129
+      },
+      {
+        "formulation": "mixed_mini",
+        "quadrature_order": 5,
+        "lambda_Pa": 10000000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 3,
+        "analytic_inner_displacement_m": 7.105543840936922e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.49995000499950004,
+          "p1_locking_risk": true,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 1548,
+        "tetrahedra": 7680,
+        "observed_inner_displacement_m": 6.925439566045303e-07,
+        "relative_displacement_error": 0.02534700776230385,
+        "accuracy_within_15_percent": true,
+        "equilibrium_passed": true,
+        "residual_N": 1.0902190395624121e-16,
+        "warnings": [
+          "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+        ],
+        "minimum_J": 0.9999814557794964,
+        "strain_energy_J": 1.703624927241102e-10,
+        "load_history": [
+          {
+            "bubble_residual_N": 4.375962243866674e-17,
+            "displacement_residual_N": 9.984037564029805e-17,
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 1.0902190395624121e-16,
+            "scaled_pressure_residual_N": 1.6644453350578053e-18,
+            "tolerance_N": 1.0031174478905628e-10,
+            "weak_volume_constraint_m3": 7.103709275991446e-23
+          }
+        ],
+        "elapsed_seconds": 37.528042594
+      }
+    ],
+    "quadrature_6": {
+      "formulation": "mixed_mini",
+      "quadrature_order": 6,
+      "lambda_Pa": 10000000.0,
+      "mu_Pa": 1000.0,
+      "pressure_Pa": 0.1,
+      "level": 3,
+      "analytic_inner_displacement_m": 7.105543840936922e-07,
+      "material_regime": {
+        "isotropic_poisson_ratio": 0.49995000499950004,
+        "p1_locking_risk": true,
+        "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+      },
+      "nodes": 1548,
+      "tetrahedra": 7680,
+      "observed_inner_displacement_m": 6.925439566049217e-07,
+      "relative_displacement_error": 0.02534700776175296,
+      "accuracy_within_15_percent": true,
+      "equilibrium_passed": true,
+      "residual_N": 1.0092273815802683e-16,
+      "warnings": [
+        "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+      ],
+      "minimum_J": 0.9999810108064054,
+      "strain_energy_J": 1.7036249271443278e-10,
+      "load_history": [
+        {
+          "bubble_residual_N": 3.309531637536813e-17,
+          "displacement_residual_N": 9.532986370969434e-17,
+          "iterations": 2,
+          "load_fraction": 1.0,
+          "residual_N": 1.0092273815802683e-16,
+          "scaled_pressure_residual_N": 1.5219055223741943e-18,
+          "tolerance_N": 1.0031174478905628e-10,
+          "weak_volume_constraint_m3": 6.495361059352162e-23
+        }
+      ],
+      "elapsed_seconds": 59.75834388399994
+    },
+    "low_load": {
+      "formulation": "mixed_mini",
+      "quadrature_order": 5,
+      "lambda_Pa": 10000000.0,
+      "mu_Pa": 1000.0,
+      "pressure_Pa": 0.01,
+      "level": 3,
+      "analytic_inner_displacement_m": 7.105543840936921e-08,
+      "material_regime": {
+        "isotropic_poisson_ratio": 0.49995000499950004,
+        "p1_locking_risk": true,
+        "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+      },
+      "nodes": 1548,
+      "tetrahedra": 7680,
+      "observed_inner_displacement_m": 6.924862625769764e-08,
+      "relative_displacement_error": 0.02542820355652497,
+      "accuracy_within_15_percent": true,
+      "equilibrium_passed": true,
+      "residual_N": 6.646569247786101e-12,
+      "warnings": [
+        "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+      ],
+      "minimum_J": 0.9999981455865751,
+      "strain_energy_J": 1.7033626391287263e-12,
+      "load_history": [
+        {
+          "bubble_residual_N": 2.78139658954166e-13,
+          "displacement_residual_N": 6.616755279731509e-12,
+          "iterations": 1,
+          "load_fraction": 1.0,
+          "residual_N": 6.646569247786101e-12,
+          "scaled_pressure_residual_N": 5.639775384516071e-13,
+          "tolerance_N": 1.0003117447890563e-10,
+          "weak_volume_constraint_m3": 2.40700736925237e-17
+        }
+      ],
+      "elapsed_seconds": 22.974409809000008
+    },
+    "higher_bulk": {
+      "formulation": "mixed_mini",
+      "quadrature_order": 5,
+      "lambda_Pa": 1000000000.0,
+      "mu_Pa": 1000.0,
+      "pressure_Pa": 0.1,
+      "level": 3,
+      "analytic_inner_displacement_m": 7.105265964910411e-07,
+      "material_regime": {
+        "isotropic_poisson_ratio": 0.49999950000050003,
+        "p1_locking_risk": true,
+        "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+      },
+      "nodes": 1548,
+      "tetrahedra": 7680,
+      "observed_inner_displacement_m": 6.925154863356425e-07,
+      "relative_displacement_error": 0.025348959833941573,
+      "accuracy_within_15_percent": true,
+      "equilibrium_passed": true,
+      "residual_N": 1.0734738183120526e-16,
+      "warnings": [
+        "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+      ],
+      "minimum_J": 0.9999814458735704,
+      "strain_energy_J": 1.7035549206155033e-10,
+      "load_history": [
+        {
+          "bubble_residual_N": 4.344528613561474e-17,
+          "displacement_residual_N": 9.815141219943934e-17,
+          "iterations": 2,
+          "load_fraction": 1.0,
+          "residual_N": 1.0734738183120526e-16,
+          "scaled_pressure_residual_N": 1.5059156234299273e-18,
+          "tolerance_N": 1.0031174478905628e-10,
+          "weak_volume_constraint_m3": 6.427117455742788e-23
+        }
+      ],
+      "elapsed_seconds": 37.429427641000075
+    },
+    "finite_load_5": {
+      "formulation": "mixed_mini",
+      "quadrature_order": 5,
+      "lambda_Pa": 10000000.0,
+      "mu_Pa": 1000.0,
+      "pressure_Pa": 100.0,
+      "level": 2,
+      "analytic_inner_displacement_m": 0.0007105543840936919,
+      "material_regime": {
+        "isotropic_poisson_ratio": 0.49995000499950004,
+        "p1_locking_risk": true,
+        "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+      },
+      "nodes": 330,
+      "tetrahedra": 1536,
+      "observed_inner_displacement_m": 0.0007206799114272334,
+      "relative_displacement_error": 0.014250179240617188,
+      "accuracy_within_15_percent": true,
+      "equilibrium_passed": true,
+      "residual_N": 8.671385441727605e-12,
+      "warnings": [
+        "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+      ],
+      "minimum_J": 0.9786822167773792,
+      "strain_energy_J": 0.0001796694550590732,
+      "load_history": [
+        {
+          "bubble_residual_N": 2.755475082996786e-12,
+          "displacement_residual_N": 8.221933274521023e-12,
+          "iterations": 3,
+          "load_fraction": 1.0,
+          "residual_N": 8.671385441727605e-12,
+          "scaled_pressure_residual_N": 9.78648626001838e-15,
+          "tolerance_N": 6.745428321371996e-10,
+          "weak_volume_constraint_m3": 4.081436537336948e-19
+        }
+      ],
+      "elapsed_seconds": 10.12616343600007
+    },
+    "finite_load_6": {
+      "formulation": "mixed_mini",
+      "quadrature_order": 6,
+      "lambda_Pa": 10000000.0,
+      "mu_Pa": 1000.0,
+      "pressure_Pa": 100.0,
+      "level": 2,
+      "analytic_inner_displacement_m": 0.0007105543840936919,
+      "material_regime": {
+        "isotropic_poisson_ratio": 0.49995000499950004,
+        "p1_locking_risk": true,
+        "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+      },
+      "nodes": 330,
+      "tetrahedra": 1536,
+      "observed_inner_displacement_m": 0.000720679912501303,
+      "relative_displacement_error": 0.014250180752211059,
+      "accuracy_within_15_percent": true,
+      "equilibrium_passed": true,
+      "residual_N": 8.671318122790311e-12,
+      "warnings": [
+        "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+      ],
+      "minimum_J": 0.9770260912440338,
+      "strain_energy_J": 0.00017966945538330068,
+      "load_history": [
+        {
+          "bubble_residual_N": 2.755504263166037e-12,
+          "displacement_residual_N": 8.221852496284004e-12,
+          "iterations": 3,
+          "load_fraction": 1.0,
+          "residual_N": 8.671318122790311e-12,
+          "scaled_pressure_residual_N": 9.786299300411594e-15,
+          "tolerance_N": 6.745428321371996e-10,
+          "weak_volume_constraint_m3": 4.081358364685967e-19
+        }
+      ],
+      "elapsed_seconds": 15.69250683700011
+    },
+    "scope": "synthetic homogeneous material, finite bulk compliance, assembled direct MINI only; no patient accuracy qualification",
+    "coarse_accuracy_failures_retained": [
+      {
+        "formulation": "mixed_mini",
+        "quadrature_order": 5,
+        "lambda_Pa": 1000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 1,
+        "analytic_inner_displacement_m": 8.789473684210528e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.25,
+          "p1_locking_risk": false,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 72,
+        "tetrahedra": 288,
+        "observed_inner_displacement_m": 7.036467442126647e-07,
+        "relative_displacement_error": 0.19944382394966303,
+        "accuracy_within_15_percent": false,
+        "equilibrium_passed": true,
+        "residual_N": 2.955978476481936e-16,
+        "warnings": [
+          "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+        ],
+        "minimum_J": 1.0000166974590199,
+        "strain_energy_J": 1.2597073262159088e-10,
+        "load_history": [
+          {
+            "bubble_residual_N": 1.0909259565734166e-16,
+            "displacement_residual_N": 2.746402384685772e-16,
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 2.955978476481936e-16,
+            "scaled_pressure_residual_N": 7.045035195900222e-18,
+            "tolerance_N": 1.0085344335487069e-10,
+            "weak_volume_constraint_m3": 2.6939440444983146e-22
+          }
+        ],
+        "elapsed_seconds": 1.210201262000055
+      },
+      {
+        "formulation": "mixed_mini",
+        "quadrature_order": 5,
+        "lambda_Pa": 100000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 1,
+        "analytic_inner_displacement_m": 7.133147438131755e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.49504950495049505,
+          "p1_locking_risk": true,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 72,
+        "tetrahedra": 288,
+        "observed_inner_displacement_m": 5.352504311369554e-07,
+        "relative_displacement_error": 0.24962937359788673,
+        "accuracy_within_15_percent": false,
+        "equilibrium_passed": true,
+        "residual_N": 2.403918078414493e-16,
+        "warnings": [
+          "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+        ],
+        "minimum_J": 0.9999858749691872,
+        "strain_energy_J": 9.642455323011495e-11,
+        "load_history": [
+          {
+            "bubble_residual_N": 9.571090478607429e-17,
+            "displacement_residual_N": 2.2030414836854253e-16,
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 2.403918078414493e-16,
+            "scaled_pressure_residual_N": 9.681228946911059e-18,
+            "tolerance_N": 1.0085344335487069e-10,
+            "weak_volume_constraint_m3": 3.701994353871931e-22
+          }
+        ],
+        "elapsed_seconds": 1.238974209999924
+      },
+      {
+        "formulation": "mixed_mini",
+        "quadrature_order": 5,
+        "lambda_Pa": 10000000.0,
+        "mu_Pa": 1000.0,
+        "pressure_Pa": 0.1,
+        "level": 1,
+        "analytic_inner_displacement_m": 7.105543840936922e-07,
+        "material_regime": {
+          "isotropic_poisson_ratio": 0.49995000499950004,
+          "p1_locking_risk": true,
+          "assessment": "nu>=0.49 flags a nearly incompressible regime, not a measured error bound"
+        },
+        "nodes": 72,
+        "tetrahedra": 288,
+        "observed_inner_displacement_m": 5.323153190359284e-07,
+        "relative_displacement_error": 0.25084507118354715,
+        "accuracy_within_15_percent": false,
+        "equilibrium_passed": true,
+        "residual_N": 2.6556609539781517e-16,
+        "warnings": [
+          "Numerical research mixed MINI backend; no patient myocardial validation. Mesh, quadrature and material accuracy require independent qualification."
+        ],
+        "minimum_J": 0.9999846063506911,
+        "strain_energy_J": 9.59169522057348e-11,
+        "load_history": [
+          {
+            "bubble_residual_N": 1.0247090828984529e-16,
+            "displacement_residual_N": 2.448744954165121e-16,
+            "iterations": 2,
+            "load_fraction": 1.0,
+            "residual_N": 2.6556609539781517e-16,
+            "scaled_pressure_residual_N": 7.845092326044216e-18,
+            "tolerance_N": 1.0085344335487069e-10,
+            "weak_volume_constraint_m3": 2.9998748498093977e-22
+          }
+        ],
+        "elapsed_seconds": 1.1874181650000537
+      }
+    ]
+  },
+  "comparison": {
+    "reference_commit": "b2dacf79a8d0cdb93fbd34e5d78b19d4ee06d534",
+    "rows": [
+      {
+        "model": "neo_hookean",
+        "level": 1,
+        "nodes": 72,
+        "tetrahedra": 288,
+        "tangent_relative_error": 3.17371994669411e-16,
+        "all_state_checks_passed": true,
+        "seconds": {
+          "reference": [
+            2.152851188999989,
+            2.1456071300000303,
+            2.1541417329999604
+          ],
+          "candidate": [
+            0.26476770000010674,
+            0.2655612190000056,
+            0.2581817529999171
+          ]
+        },
+        "median_speedup": 8.131094499061332
+      },
+      {
+        "model": "neo_hookean",
+        "level": 2,
+        "nodes": 330,
+        "tetrahedra": 1536,
+        "tangent_relative_error": 2.927851876439703e-16,
+        "all_state_checks_passed": true,
+        "seconds": {
+          "reference": [
+            12.605562759999998,
+            12.202941641000052,
+            12.231898181999895
+          ],
+          "candidate": [
+            1.485937748000083,
+            2.3332753260000345,
+            2.329684592000035
+          ]
+        },
+        "median_speedup": 5.250452453522391
+      },
+      {
+        "model": "neo_hookean",
+        "level": 3,
+        "nodes": 1548,
+        "tetrahedra": 7680,
+        "tangent_relative_error": 2.7854472494273405e-16,
+        "all_state_checks_passed": true,
+        "seconds": {
+          "reference": [
+            62.54261043199995,
+            62.08004134399994,
+            62.46470604800004
+          ],
+          "candidate": [
+            7.747723092000001,
+            8.404237943999988,
+            8.381016274000103
+          ]
+        },
+        "median_speedup": 7.453118333844589
+      },
+      {
+        "model": "guccione",
+        "level": 1,
+        "nodes": 72,
+        "tetrahedra": 288,
+        "tangent_relative_error": 0.0,
+        "all_state_checks_passed": true,
+        "seconds": {
+          "reference": [
+            3.207102852999924,
+            2.81726401800006,
+            2.851341023000032
+          ],
+          "candidate": [
+            2.843699216999994,
+            3.91042577799999,
+            2.8005475279999246
+          ]
+        },
+        "median_speedup": 1.0026872764722634
+      }
+    ]
+  },
+  "full_archive_receipt": {
+    "path": "/content/mini_assembly_20261023_192114_429258/mixed_mini_assembly_evidence.zip",
+    "bytes": 21730402,
+    "sha256": "954ab046fbfadbb2e7ca22b07194feb92caacecbb2adb61730b1ec16267832cb"
+  },
+  "bulk_field_identities": {
+    "qualification/baseline/lambda-1000-level-1/spatial-mechanics.json": {
+      "field_sha256": "0fc4394b0fe81447a2b40cb2f5846acca2ada2bd5ea50261e9d691a6f3516b7a",
+      "field_bytes": 183767,
+      "mesh_sha256": "8b96dc880e9973ab8524dd7f2061fd0ac9fd53acb514452388a691dab695ab32"
+    },
+    "qualification/baseline/lambda-1000-level-2/spatial-mechanics.json": {
+      "field_sha256": "347dbd33432e94df65adae078f8f21cc3f3807e48e3533b0fa28f57aca966bd3",
+      "field_bytes": 1023319,
+      "mesh_sha256": "35e57cc24f1310a86610303329017ee1351602be447caac2eb74e12fc90511d0"
+    },
+    "qualification/baseline/lambda-1000-level-3/spatial-mechanics.json": {
+      "field_sha256": "abacae0775579d6a3c0f1f9e82641dba97f0b83f8e0f3ef03bf212e8bd67fc37",
+      "field_bytes": 5218516,
+      "mesh_sha256": "9bc8b6e25e5b6688b29bff1148458869012b9b77783dea5cd087e2e3a2553035"
+    },
+    "qualification/baseline/lambda-100000-level-1/spatial-mechanics.json": {
+      "field_sha256": "a2f0b04a629a6c96c932a70a630e4a719a8e9a58ed3ff15e153b5c84b75ba412",
+      "field_bytes": 184284,
+      "mesh_sha256": "8b96dc880e9973ab8524dd7f2061fd0ac9fd53acb514452388a691dab695ab32"
+    },
+    "qualification/baseline/lambda-100000-level-2/spatial-mechanics.json": {
+      "field_sha256": "7999e9438ea10caf0862836e15140b8d99962419d6a982a6a3f5292ece78e806",
+      "field_bytes": 1023937,
+      "mesh_sha256": "35e57cc24f1310a86610303329017ee1351602be447caac2eb74e12fc90511d0"
+    },
+    "qualification/baseline/lambda-100000-level-3/spatial-mechanics.json": {
+      "field_sha256": "0d4880a1368f98b69c3717774c1b46b887e4c5ed3f1bc4de3c2e5b4970304710",
+      "field_bytes": 5222009,
+      "mesh_sha256": "9bc8b6e25e5b6688b29bff1148458869012b9b77783dea5cd087e2e3a2553035"
+    },
+    "qualification/baseline/lambda-1e+07-level-1/spatial-mechanics.json": {
+      "field_sha256": "8c78daf4478988096fb19bc9b9f4868635d3f5a0a5cb7944d827573654b148ae",
+      "field_bytes": 184405,
+      "mesh_sha256": "8b96dc880e9973ab8524dd7f2061fd0ac9fd53acb514452388a691dab695ab32"
+    },
+    "qualification/baseline/lambda-1e+07-level-2/spatial-mechanics.json": {
+      "field_sha256": "b64e1c8c60f1360d8d58d982b750967ffa1aa75b26c1a1b455cd87fe63823b3d",
+      "field_bytes": 1024524,
+      "mesh_sha256": "35e57cc24f1310a86610303329017ee1351602be447caac2eb74e12fc90511d0"
+    },
+    "qualification/baseline/lambda-1e+07-level-3/spatial-mechanics.json": {
+      "field_sha256": "e0327f455c2a1d5415b507fc4fbbc6ff4adea51657ccfbaa89e43e8969a05be1",
+      "field_bytes": 5214826,
+      "mesh_sha256": "9bc8b6e25e5b6688b29bff1148458869012b9b77783dea5cd087e2e3a2553035"
+    },
+    "qualification/finite-load-5/lambda-1e+07-level-2/spatial-mechanics.json": {
+      "field_sha256": "bd113a0fafd62a1ef14239308380daecaf5fcc5fa3bcec09fcc4410afeac95e8",
+      "field_bytes": 1106996,
+      "mesh_sha256": "35e57cc24f1310a86610303329017ee1351602be447caac2eb74e12fc90511d0"
+    },
+    "qualification/finite-load-6/lambda-1e+07-level-2/spatial-mechanics.json": {
+      "field_sha256": "ca250a6e25dab934521aaae32f29420c3198fdcd35fb1e90488a391dd858c29b",
+      "field_bytes": 1106964,
+      "mesh_sha256": "35e57cc24f1310a86610303329017ee1351602be447caac2eb74e12fc90511d0"
+    },
+    "qualification/higher-bulk/lambda-1e+09-level-3/spatial-mechanics.json": {
+      "field_sha256": "a37f69d9750e7f40ba6b0bf34a115be28e870e920b3d6b2724eecc1e3460cd75",
+      "field_bytes": 5871719,
+      "mesh_sha256": "9bc8b6e25e5b6688b29bff1148458869012b9b77783dea5cd087e2e3a2553035"
+    },
+    "qualification/low-load/lambda-1e+07-level-3/spatial-mechanics.json": {
+      "field_sha256": "32984f087bb93935380089e6fc647af676a9b03866577e7e83d611afe61a5f2a",
+      "field_bytes": 5939264,
+      "mesh_sha256": "9bc8b6e25e5b6688b29bff1148458869012b9b77783dea5cd087e2e3a2553035"
+    },
+    "qualification/mixed/lambda-1000-level-1/spatial-mechanics.json": {
+      "field_sha256": "bb8aac7e083c8a5dedcf92bf62a1f43078bdde92edae86a6adab8c119cb5710c",
+      "field_bytes": 219816,
+      "mesh_sha256": "8b96dc880e9973ab8524dd7f2061fd0ac9fd53acb514452388a691dab695ab32"
+    },
+    "qualification/mixed/lambda-1000-level-2/spatial-mechanics.json": {
+      "field_sha256": "7ec3f101c27a0ef4176710d2c83866c7aefa5c441eff4a90a92e536cf62a7803",
+      "field_bytes": 1171923,
+      "mesh_sha256": "35e57cc24f1310a86610303329017ee1351602be447caac2eb74e12fc90511d0"
+    },
+    "qualification/mixed/lambda-1000-level-3/spatial-mechanics.json": {
+      "field_sha256": "e80035656cd94563ac25813866005fceb1eb4539d9d0f01888a37508ad8bf04f",
+      "field_bytes": 5871132,
+      "mesh_sha256": "9bc8b6e25e5b6688b29bff1148458869012b9b77783dea5cd087e2e3a2553035"
+    },
+    "qualification/mixed/lambda-100000-level-1/spatial-mechanics.json": {
+      "field_sha256": "e1eeec368033a6c07181776ae08307fcd2743de435ef11915b4e7bf3e0d1f2ab",
+      "field_bytes": 220093,
+      "mesh_sha256": "8b96dc880e9973ab8524dd7f2061fd0ac9fd53acb514452388a691dab695ab32"
+    },
+    "qualification/mixed/lambda-100000-level-2/spatial-mechanics.json": {
+      "field_sha256": "4b016b0d195ba662e6391c7941962c277139d915ce52bda7e04e15a4754744f8",
+      "field_bytes": 1171685,
+      "mesh_sha256": "35e57cc24f1310a86610303329017ee1351602be447caac2eb74e12fc90511d0"
+    },
+    "qualification/mixed/lambda-100000-level-3/spatial-mechanics.json": {
+      "field_sha256": "c4ac4320e15e68825f491a75f77e20fc10b36c8e40930da87ba02f69fa52202c",
+      "field_bytes": 5871757,
+      "mesh_sha256": "9bc8b6e25e5b6688b29bff1148458869012b9b77783dea5cd087e2e3a2553035"
+    },
+    "qualification/mixed/lambda-1e+07-level-1/spatial-mechanics.json": {
+      "field_sha256": "ad62bd48d28f23c94a201c313290fa82d9bfb026122d7d4e695e5c39d61c008b",
+      "field_bytes": 220020,
+      "mesh_sha256": "8b96dc880e9973ab8524dd7f2061fd0ac9fd53acb514452388a691dab695ab32"
+    },
+    "qualification/mixed/lambda-1e+07-level-2/spatial-mechanics.json": {
+      "field_sha256": "4ca5dedaf1924d91cab9e75505da1231689eab0901df65af1028ca64fd9f5f14",
+      "field_bytes": 1171619,
+      "mesh_sha256": "35e57cc24f1310a86610303329017ee1351602be447caac2eb74e12fc90511d0"
+    },
+    "qualification/mixed/lambda-1e+07-level-3/spatial-mechanics.json": {
+      "field_sha256": "f54f72bc51a288fc1cf37322ec4f93abc123748134271281069d2f74d0766359",
+      "field_bytes": 5872069,
+      "mesh_sha256": "9bc8b6e25e5b6688b29bff1148458869012b9b77783dea5cd087e2e3a2553035"
+    },
+    "qualification/quadrature-6/lambda-1e+07-level-3/spatial-mechanics.json": {
+      "field_sha256": "3069ad2a42300b6fd7d8167ff4c646db5393c473a2fe63322ce629102e13b3cc",
+      "field_bytes": 5872021,
+      "mesh_sha256": "9bc8b6e25e5b6688b29bff1148458869012b9b77783dea5cd087e2e3a2553035"
+    }
+  },
+  "raw_state_count": 23,
+  "omissions": "Full mesh/element field JSON omitted from compact archive; hashes retained and 23 raw nodal/pressure/bubble/J states included for regeneration with pinned source. Full archive was offered separately."
+}
