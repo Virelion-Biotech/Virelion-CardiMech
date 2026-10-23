@@ -1,0 +1,12 @@
+{
+  "compact": {
+    "bytes": 2351471,
+    "sha256": "70939b72de4271c92728f85633a4a0952276ccf4e3d1425d06bc634500fdb844",
+    "git_blob": "c134969a128aa8c54d0158dede0e934d41d30590"
+  },
+  "full": {
+    "path": "/content/mini_assembly_20261023_192114_429258/mixed_mini_assembly_evidence.zip",
+    "bytes": 21730402,
+    "sha256": "954ab046fbfadbb2e7ca22b07194feb92caacecbb2adb61730b1ec16267832cb"
+  }
+}

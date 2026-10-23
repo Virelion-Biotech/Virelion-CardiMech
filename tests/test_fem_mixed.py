@@ -10,7 +10,13 @@ from test_fem import request
 from cardimech.fem_examples import cube_mesh, shell_mesh
 from cardimech.fem_materials import constitutive
 from cardimech.fem_mesh import load_mesh
-from cardimech.fem_mixed import MiniAssembler, mixed_material, tetra_rule, volume_dual
+from cardimech.fem_mixed import (
+    MiniAssembler,
+    mixed_material,
+    neo_hookean_displacement_block,
+    tetra_rule,
+    volume_dual,
+)
 from cardimech.models import BoundaryCondition
 from cardimech.service import CardiMechService
 
@@ -105,6 +111,40 @@ def test_condensation_against_full_finite_difference(tmp_path):
     db = a.bubble_increment(dx).ravel()
     np.testing.assert_allclose(full[16:, :16] @ dx + full[16:, 16:] @ db + r[16:], 0, atol=1e-10)
     assert nn == len(mesh.nodes)
+
+
+@pytest.mark.parametrize("tension", [0.0, 75.0])
+@pytest.mark.parametrize("order", [5, 6, 7])
+def test_direct_nh_contraction_matches_full_material_tensor(order, tension):
+    # Independent tensor contraction on nonaffine states, nonzero signed pressure,
+    # rotated fibres and arbitrary gradients. Covers all local bubble/node blocks.
+    rng = np.random.default_rng(723)
+    _bary, weights = tetra_rule(order)
+    n, nq = 3, len(weights)
+    F = np.eye(3) + rng.normal(0, 0.05, (n, nq, 3, 3))
+    p = rng.uniform(-200, 200, (n, nq))
+    G = rng.normal(0, 100, (n, nq, 5, 3))
+    fiber = rng.normal(size=(n, 3))
+    fiber /= np.linalg.norm(fiber, axis=1)[:, None]
+    sheet = np.cross(fiber, [0, 0, 1])
+    sheet /= np.linalg.norm(sheet, axis=1)[:, None]
+    _w, _phys, _P, C, J, cof = mixed_material(
+        F.reshape(-1, 3, 3),
+        p.ravel(),
+        "neo_hookean",
+        {"mu": 1000.0, "kappa": 1e7},
+        np.repeat(fiber, nq, axis=0),
+        np.repeat(sheet, nq, axis=0),
+        tension,
+    )
+    vw = rng.uniform(1e-7, 1e-6, n)[:, None] * weights
+    expected = np.einsum(
+        "eq,eqaj,eqijkl,eqbl->eaibk", vw, G, C.reshape(n, nq, 3, 3, 3, 3), G
+    ).reshape(n, 15, 15)
+    actual = neo_hookean_displacement_block(
+        vw, G, cof.reshape(n, nq, 3, 3), J.reshape(n, nq), p, 1000.0, fiber, tension
+    )
+    np.testing.assert_allclose(actual, expected, rtol=2e-13, atol=2e-12)
 
 
 def test_pressure_has_only_constant_null_mode_at_incompressible_limit(tmp_path):

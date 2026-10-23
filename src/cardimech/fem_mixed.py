@@ -72,6 +72,27 @@ def mixed_material(F, pressure, model, parameters, fiber, sheet, tension, tangen
     return potential, physical, P, C, J, cof
 
 
+def neo_hookean_displacement_block(vw, gradients, cof, J, pressure, mu, fiber, tension):
+    """Contract the exact mixed NH tangent without a quadrature 3x3x3x3 tensor.
+
+    With H_ai = F^-T_ij G_aj, C contracted with G_a and G_b is
+    mu*delta_ik*(G_a.G_b) + (mu-pJ)*H_bi*H_ak + pJ*H_ai*H_bk.
+    Prescribed second-Piola fibre tension contributes
+    T*delta_ik*(G_a.f)*(G_b.f). No material or quadrature approximation is used.
+    """
+    H = np.einsum("eqij,eqaj->eqai", cof / J[:, :, None, None], gradients)
+    gram = mu * np.einsum("eqaj,eqbj->eqab", gradients, gradients)
+    along_fiber = np.einsum("eqaj,ej->eqa", gradients, fiber)
+    gram += tension * np.einsum("eqa,eqb->eqab", along_fiber, along_fiber)
+    pJ = pressure * J
+    block = np.einsum("eq,eqab,ik->eaibk", vw, gram, np.eye(3), optimize=True)
+    block += np.einsum("eq,eqbi,eqak->eaibk", vw * (mu - pJ), H, H, optimize=True)
+    block += np.einsum("eq,eqai,eqbk->eaibk", vw * pJ, H, H, optimize=True)
+    if not np.isfinite(block).all():
+        raise ValueError("Mixed neo-Hookean tangent exceeds finite numerical range")
+    return block.reshape(len(vw), 15, 15)
+
+
 @dataclass
 class MixedAssembly:
     residual: np.ndarray
@@ -153,7 +174,8 @@ class MiniAssembler:
                 np.repeat(mesh.sheet[start:stop], nq, axis=0),
                 tension,
             )
-            energy, _, P, C, J, A = mixed_material(*args, tangent=tangent)
+            fast_nh = self.model == "neo_hookean"
+            energy, _, P, C, J, A = mixed_material(*args, tangent=tangent and not fast_nh)
             P, A, J = P.reshape(n, nq, 3, 3), A.reshape(n, nq, 3, 3), J.reshape(n, nq)
             min_j = min(min_j, float(J.min()))
             vw = mesh.volumes[start:stop, None] * weights
@@ -175,10 +197,15 @@ class MiniAssembler:
             fields[3][start:stop] = J @ weights
             if not tangent:
                 continue
-            C = C.reshape(n, nq, 3, 3, 3, 3)
-            kdd = np.einsum("eq,eqaj,eqijkl,eqbl->eaibk", vw, G, C, G, optimize=True).reshape(
-                n, 15, 15
-            )
+            if fast_nh:
+                kdd = neo_hookean_displacement_block(
+                    vw, G, A, J, p, self.parameters["mu"], mesh.fiber[start:stop], tension
+                )
+            else:
+                C = C.reshape(n, nq, 3, 3, 3, 3)
+                kdd = np.einsum("eq,eqaj,eqijkl,eqbl->eaibk", vw, G, C, G, optimize=True).reshape(
+                    n, 15, 15
+                )
             kdp = self.pressure_scale * np.einsum(
                 "eq,eqaj,eqij,qb->eaib", vw, G, A, bary, optimize=True
             ).reshape(n, 15, 4)

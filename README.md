@@ -8,9 +8,11 @@
 It combines stable mechanics contracts with a dependency-light reference model and explicit plugin boundaries for high-fidelity finite-element and multiphysics solvers.
 
 
-## Numerical qualification update (2026-10-22)
+## Numerical qualification update (2026-10-23)
 
 Cached matrix-free actions and optional block Jacobi passed 128 Colab tests and an end-to-end replay, including a 32,784-node synthetic shell. A separate direct-solver benchmark found **80.2% displacement error in the finest tested nearly incompressible P1 case despite equilibrium convergence**. A subsequent mixed MINI correction reduced the same case to **2.53%**, passed 146 Colab tests without skips and all frozen qualification gates. Coarse meshes still fail; large mixed solves and patient accuracy remain unqualified. [Mixed results and evidence](docs/MIXED_MINI_RESULTS.md); [historical P1 evidence](docs/ROBUSTNESS_AND_LIMITS.md).
+
+An exact neo-Hookean tangent contraction subsequently passed **152 Colab tests without skips and the unchanged 23-solve campaign**. Paired finest-shell assembly median fell from 62.465 to 8.381 seconds (7.45x); accuracy and coarse failures were retained. This is an assembly timing result on one runtime, not a universal whole-solver speedup. [Executed comparison, evidence and limits](docs/MIXED_MINI_ASSEMBLY_RESULTS.md).
 
 <!-- VALIDATION_PRODUCT_STATUS:BEGIN -->
 ## Validation and product completion status

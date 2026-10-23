@@ -1,0 +1,89 @@
+{
+  "reference_commit": "b2dacf79a8d0cdb93fbd34e5d78b19d4ee06d534",
+  "rows": [
+    {
+      "model": "neo_hookean",
+      "level": 1,
+      "nodes": 72,
+      "tetrahedra": 288,
+      "tangent_relative_error": 3.17371994669411e-16,
+      "all_state_checks_passed": true,
+      "seconds": {
+        "reference": [
+          2.152851188999989,
+          2.1456071300000303,
+          2.1541417329999604
+        ],
+        "candidate": [
+          0.26476770000010674,
+          0.2655612190000056,
+          0.2581817529999171
+        ]
+      },
+      "median_speedup": 8.131094499061332
+    },
+    {
+      "model": "neo_hookean",
+      "level": 2,
+      "nodes": 330,
+      "tetrahedra": 1536,
+      "tangent_relative_error": 2.927851876439703e-16,
+      "all_state_checks_passed": true,
+      "seconds": {
+        "reference": [
+          12.605562759999998,
+          12.202941641000052,
+          12.231898181999895
+        ],
+        "candidate": [
+          1.485937748000083,
+          2.3332753260000345,
+          2.329684592000035
+        ]
+      },
+      "median_speedup": 5.250452453522391
+    },
+    {
+      "model": "neo_hookean",
+      "level": 3,
+      "nodes": 1548,
+      "tetrahedra": 7680,
+      "tangent_relative_error": 2.7854472494273405e-16,
+      "all_state_checks_passed": true,
+      "seconds": {
+        "reference": [
+          62.54261043199995,
+          62.08004134399994,
+          62.46470604800004
+        ],
+        "candidate": [
+          7.747723092000001,
+          8.404237943999988,
+          8.381016274000103
+        ]
+      },
+      "median_speedup": 7.453118333844589
+    },
+    {
+      "model": "guccione",
+      "level": 1,
+      "nodes": 72,
+      "tetrahedra": 288,
+      "tangent_relative_error": 0.0,
+      "all_state_checks_passed": true,
+      "seconds": {
+        "reference": [
+          3.207102852999924,
+          2.81726401800006,
+          2.851341023000032
+        ],
+        "candidate": [
+          2.843699216999994,
+          3.91042577799999,
+          2.8005475279999246
+        ]
+      },
+      "median_speedup": 1.0026872764722634
+    }
+  ]
+}
