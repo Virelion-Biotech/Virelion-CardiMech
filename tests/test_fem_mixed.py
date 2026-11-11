@@ -5,6 +5,9 @@ from math import factorial
 
 import numpy as np
 import pytest
+
+pytest.importorskip("scipy", reason="spatial FEM requires the [spatial] extra")
+
 from test_fem import request
 
 from cardimech.fem_examples import cube_mesh, shell_mesh

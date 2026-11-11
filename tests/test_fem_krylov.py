@@ -4,6 +4,9 @@ import json
 
 import numpy as np
 import pytest
+
+pytest.importorskip("scipy", reason="spatial FEM requires the [spatial] extra")
+
 from test_fem import request
 
 from cardimech.fem_backend import assemble

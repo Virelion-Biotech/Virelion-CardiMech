@@ -2,6 +2,9 @@
 
 import numpy as np
 import pytest
+
+pytest.importorskip("scipy", reason="spatial FEM requires the [spatial] extra")
+
 from test_fem_krylov import clamped_request
 
 from cardimech.fem_materials import linearized_regime
