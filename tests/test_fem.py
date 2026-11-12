@@ -3,6 +3,8 @@ import json
 import numpy as np
 import pytest
 
+pytest.importorskip("scipy", reason="spatial FEM requires the [spatial] extra")
+
 from cardimech.artifacts import write_json_artifact
 from cardimech.fem_backend import assemble, pressure_load
 from cardimech.fem_examples import cube_mesh, shell_mesh

@@ -3,7 +3,6 @@
 from itertools import product
 
 import numpy as np
-from scipy.spatial import ConvexHull
 
 
 def shell_mesh(level=1, layers=3, inner=0.02, outer=0.03):
@@ -11,6 +10,8 @@ def shell_mesh(level=1, layers=3, inner=0.02, outer=0.03):
         np.array(v, dtype=float)
         for v in [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
     ]
+    from scipy.spatial import ConvexHull  # optional: pip install virelion-cardimech[spatial]
+
     faces = ConvexHull(directions).simplices.tolist()
     for _ in range(level):
         edges = {}
