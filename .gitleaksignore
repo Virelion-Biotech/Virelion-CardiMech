@@ -1,0 +1,5 @@
+# Exact false-positive fingerprints: 64-character SHA-256 hashes in saved validation manifests/results, not credentials.
+aa42b30d228dca182bbb02c93d90f6ae7da9a674:validation/mini_assembly_2026_10_23/COMPACT_MANIFEST.json:generic-api-key:210
+1e895bfa6f7ccd4ff7c92a2cfee1b12a49ba1674:validation/colab_numerical_2026_10_15/original/source_snapshots.json:generic-api-key:29
+f0390418486ca520df356d85f1e891f5524ef920:validation/cpu/results.json:generic-api-key:59
+f0390418486ca520df356d85f1e891f5524ef920:validation/cpu/lv_results.json:generic-api-key:42
